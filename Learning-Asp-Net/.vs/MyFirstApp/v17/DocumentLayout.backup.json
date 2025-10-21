@@ -5,6 +5,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\custommiddleware\\hellocustommiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\custommiddleware\\hellocustommiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\custommiddleware\\mycustommiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\custommiddleware\\mycustommiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -24,11 +32,37 @@
         },
         {
           "DockedHeight": 76,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MyCustomMiddleware.cs",
+              "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\CustomMiddleware\\MyCustomMiddleware.cs",
+              "RelativeDocumentMoniker": "MyFirstApp\\CustomMiddleware\\MyCustomMiddleware.cs",
+              "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\CustomMiddleware\\MyCustomMiddleware.cs",
+              "RelativeToolTip": "MyFirstApp\\CustomMiddleware\\MyCustomMiddleware.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-21T03:15:53.924Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HelloCustomMiddleware.cs",
+              "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\CustomMiddleware\\HelloCustomMiddleware.cs",
+              "RelativeDocumentMoniker": "MyFirstApp\\CustomMiddleware\\HelloCustomMiddleware.cs",
+              "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\CustomMiddleware\\HelloCustomMiddleware.cs",
+              "RelativeToolTip": "MyFirstApp\\CustomMiddleware\\HelloCustomMiddleware.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-21T03:10:30.723Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -38,7 +72,7 @@
               "RelativeDocumentMoniker": "MyFirstApp\\Program.cs",
               "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Program.cs",
               "RelativeToolTip": "MyFirstApp\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAALAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-19T02:56:59.403Z",
               "EditorCaption": ""
