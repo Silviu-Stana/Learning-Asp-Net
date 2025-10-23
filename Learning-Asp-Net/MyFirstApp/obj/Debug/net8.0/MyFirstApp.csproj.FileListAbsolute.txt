@@ -55,3 +55,4 @@ C:\.NET\Learning-Asp-Net\MyFirstApp\obj\Debug\net8.0\refint\MyFirstApp.dll
 C:\.NET\Learning-Asp-Net\MyFirstApp\obj\Debug\net8.0\MyFirstApp.pdb
 C:\.NET\Learning-Asp-Net\MyFirstApp\obj\Debug\net8.0\MyFirstApp.genruntimeconfig.cache
 C:\.NET\Learning-Asp-Net\MyFirstApp\obj\Debug\net8.0\ref\MyFirstApp.dll
+C:\.NET\Learning-Asp-Net\MyFirstApp\bin\Debug\net8.0\MyFirstApp.staticwebassets.runtime.json
