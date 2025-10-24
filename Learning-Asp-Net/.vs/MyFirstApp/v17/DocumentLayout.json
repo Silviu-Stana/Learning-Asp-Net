@@ -3,6 +3,22 @@
   "WorkspaceRootPath": "C:\\.NET\\Learning-Asp-Net\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\controllers\\bankcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\controllers\\bankcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\controllers\\storecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\controllers\\storecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\controllers\\filecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\controllers\\filecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|c:\\.net\\learning-asp-net\\myfirstapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0C18B60A-EA3A-4DCE-B0D3-59EA00C379B6}|MyFirstApp\\MyFirstApp.csproj|solutionrelative:myfirstapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -14,7 +30,7 @@
       "DocumentGroups": [
         {
           "DockedHeight": 547,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -22,13 +38,65 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "StoreController.cs",
+              "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\StoreController.cs",
+              "RelativeDocumentMoniker": "MyFirstApp\\Controllers\\StoreController.cs",
+              "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\StoreController.cs",
+              "RelativeToolTip": "MyFirstApp\\Controllers\\StoreController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T15:50:30.925Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "HomeController.cs",
+              "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\HomeController.cs",
+              "RelativeDocumentMoniker": "MyFirstApp\\Controllers\\HomeController.cs",
+              "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\HomeController.cs",
+              "RelativeToolTip": "MyFirstApp\\Controllers\\HomeController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T15:50:30.858Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FileController.cs",
+              "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\FileController.cs",
+              "RelativeDocumentMoniker": "MyFirstApp\\Controllers\\FileController.cs",
+              "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\FileController.cs",
+              "RelativeToolTip": "MyFirstApp\\Controllers\\FileController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T15:50:30.79Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "BankController.cs",
+              "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\BankController.cs",
+              "RelativeDocumentMoniker": "MyFirstApp\\Controllers\\BankController.cs",
+              "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Controllers\\BankController.cs",
+              "RelativeToolTip": "MyFirstApp\\Controllers\\BankController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T15:50:30.705Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Program.cs",
               "RelativeDocumentMoniker": "MyFirstApp\\Program.cs",
               "ToolTip": "C:\\.NET\\Learning-Asp-Net\\MyFirstApp\\Program.cs",
               "RelativeToolTip": "MyFirstApp\\Program.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-19T02:56:59.403Z",
               "EditorCaption": ""
