@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions()
     WebRootPath = "images"
 });
 
+
 builder.Services.AddRouting(options =>
 {
     options.ConstraintMap.Add("months", typeof(MonthsCustomConstraint));
@@ -13,10 +14,10 @@ builder.Services.AddRouting(options =>
 var app = builder.Build();
 
 app.UseStaticFiles(); //works with 1st WebRootPath
-app.UseStaticFiles(new StaticFileOptions()
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath + @"\images2"))
-});
+//app.UseStaticFiles(new StaticFileOptions()
+//{
+//    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath + @"\images2"))
+//});
 
 app.Map("files/{filename}.{extension}", async (context) =>
 {
@@ -80,3 +81,4 @@ app.MapFallback(async (context) => {
 });
 
 app.Run();
+
