@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ModelValidationsExample.Models
 {
-    public class Person
+    public class Person : IValidatableObject
     {
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name = "Person Name")]
@@ -21,15 +21,23 @@ namespace ModelValidationsExample.Models
         [Range(0,999.99, ErrorMessage="{0} should be between ${1} and ${2}")]
         public double? Price { get; set; }
 
-        [MinimumYearValidator(2006)]
         public DateTime? DateOfBirth { get; set; }
+        public int? Age{  get; set; }
 
         public DateTime? FromDate {  get; set; }
-        //[DateRangeValidator("FromDate", ErrorMessage = ''From date should be BEFORE the To Date'")]
+        [DateRangeValidator("FromDate")]
         public DateTime? ToDate {  get; set; }
         public override string ToString()
         {
             return $"Name: {PersonName}, Email: {Email}, Phone: {Phone}, Password: {Password}, Price: {Price}";
+        }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (DateOfBirth.HasValue == false && Age.HasValue == false)
+            {
+                yield return new ValidationResult("Either Age or Date of Birth should be supplied.", new[]  { nameof(Age) });
+            }
         }
     }
 }

@@ -5,9 +5,9 @@ namespace ModelValidationsExample.CustomValidators
 {
     public class DateRangeValidatorAttribute : ValidationAttribute
     {
-        public string OtherPropertyName { get; set; }
-        public string DefaultErrorMessage { get; set; } = "FromDate, should be on a date before ToDate";
-        public DateRangeValidatorAttribute(string otherPropertyName) { OtherPropertyName = otherPropertyName; }
+        public string FromDate { get; set; }
+        public string DefaultErrorMessage { get; set; } = "'From Date' should be older than 'To Date'";
+        public DateRangeValidatorAttribute(string fromDate) { FromDate = fromDate; }
 
 
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
@@ -16,13 +16,16 @@ namespace ModelValidationsExample.CustomValidators
             {
                 DateTime to_date = Convert.ToDateTime(value);
 
-                PropertyInfo? otherProperty = validationContext.ObjectType.GetProperty(OtherPropertyName);
+                //Fetch  FromDate  using reflection
+                PropertyInfo? otherProperty = validationContext.ObjectType.GetProperty(FromDate);
                 DateTime from_date = Convert.ToDateTime(otherProperty.GetValue(validationContext.ObjectInstance));
 
-                if (from_date > to_date) return new ValidationResult(ErrorMessage ?? DefaultErrorMessage, new string[] {OtherPropertyName, validationContext.MemberName});
+                if (from_date > to_date) return new ValidationResult(ErrorMessage ?? DefaultErrorMessage/*, new string[] {FromDate, validationContext.MemberName}*/);
 
-                return ValidationResult.Success;
+                else return ValidationResult.Success;
             }
+
+            return null;
         }
     }
 }
