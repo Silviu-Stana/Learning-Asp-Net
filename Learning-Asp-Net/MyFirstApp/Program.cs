@@ -11,8 +11,11 @@ builder.Services.AddRouting(options =>
 {
     options.ConstraintMap.Add("months", typeof(MonthsCustomConstraint));
 });
+builder.Services.AddControllers();
 var app = builder.Build();
 
+app.UseRouting();
+app.MapControllers();
 app.UseStaticFiles(); //works with 1st WebRootPath
 //app.UseStaticFiles(new StaticFileOptions()
 //{
@@ -75,6 +78,67 @@ app.Map("sales-report/2024/jan", async(context) =>
 {
 await context.Response.WriteAsync($"2025/January");
 });
+
+
+app.Map("/countries", async (context) =>
+{
+    //sample data
+    Dictionary<int, string> countries = new Dictionary<int, string>();
+    countries.Add(1, "United States");
+    countries.Add(2, "Canada");
+    countries.Add(3, "United Kingdom");
+    countries.Add(4, "India");
+    countries.Add(5, "Japan");
+
+    context.Response.StatusCode = 200;
+    foreach (var item in countries)
+    {
+        await context.Response.WriteAsync(item.Key + ", " + item.Value + "\n");
+    }
+});
+
+
+app.Map("/countries/{countryId:int}", async context =>
+{
+    //sample data
+    Dictionary<int, string> countries = new Dictionary<int, string>();
+    countries.Add(1, "United States");
+    countries.Add(2, "Canada");
+    countries.Add(3, "United Kingdom");
+    countries.Add(4, "India");
+    countries.Add(5, "Japan");
+
+
+    if (context.Request.RouteValues.ContainsKey("countryId"))
+    {
+        int countryId = Convert.ToInt32(context.Request.RouteValues["countryId"]);
+        if(countryId<1 || countryId>100)
+        {
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsync("The CountryID should be between 1 and 100");
+            return;
+        }
+
+        context.Response.StatusCode = 200;
+        await context.Response.WriteAsync(countries[countryId]);
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Country not found.");
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 app.MapFallback(async (context) => {
     await context.Response.WriteAsync($"No route matched at: {context.Request.Path}");
