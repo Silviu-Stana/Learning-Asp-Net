@@ -26,17 +26,11 @@ namespace ModelValidationsExample.Controllers
         [Route("/order")]
         public IActionResult Order(Order order)
         {
-            if (!ModelState.IsValid)
-            {
-                List<string> errorsList = ModelState.Values.SelectMany(x => x.Errors).Select(y => y.ErrorMessage).ToList();
-
-                string errors = string.Join("\n", errorsList);
-                return BadRequest(errors);
-            }
+            if (!ModelState.IsValid) return BadRequest(string.Join("\n", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
 
             if (order == null || order.Products.Count == 0) return BadRequest("Must have at least 1 product, to place a order.");
 
-            double totalCost = order.Products.Sum(p=>p.Price * p.Quantity);
+            double totalCost = order.Products.Sum(p => p.Price * p.Quantity);
 
 
             //example: InvoicePrice ($170) doesn't match with the total cost of the specified products in the order. ($160)
@@ -48,7 +42,7 @@ namespace ModelValidationsExample.Controllers
 
             order.OrderNo = orderNumber;
 
-            return Json(new {orderNumber});
+            return Json(new { orderNumber });
         }
 
     }
