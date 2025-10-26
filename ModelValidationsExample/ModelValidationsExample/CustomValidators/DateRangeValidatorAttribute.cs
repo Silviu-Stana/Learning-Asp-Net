@@ -18,7 +18,7 @@ namespace ModelValidationsExample.CustomValidators
 
                 //Fetch  FromDate  using reflection
                 PropertyInfo? otherProperty = validationContext.ObjectType.GetProperty(FromDate);
-                DateTime from_date = Convert.ToDateTime(otherProperty.GetValue(validationContext.ObjectInstance));
+                DateTime from_date = Convert.ToDateTime(otherProperty?.GetValue(validationContext.ObjectInstance));
 
                 if (from_date > to_date) return new ValidationResult(ErrorMessage ?? DefaultErrorMessage/*, new string[] {FromDate, validationContext.MemberName}*/);
 

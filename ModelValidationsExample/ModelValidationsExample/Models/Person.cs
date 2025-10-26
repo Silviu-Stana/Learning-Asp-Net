@@ -1,4 +1,5 @@
-﻿using ModelValidationsExample.CustomValidators;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using ModelValidationsExample.CustomValidators;
 using System.ComponentModel.DataAnnotations;
 
 namespace ModelValidationsExample.Models
@@ -21,12 +22,15 @@ namespace ModelValidationsExample.Models
         [Range(0,999.99, ErrorMessage="{0} should be between ${1} and ${2}")]
         public double? Price { get; set; }
 
+        //[BindNever]
         public DateTime? DateOfBirth { get; set; }
         public int? Age{  get; set; }
 
         public DateTime? FromDate {  get; set; }
         [DateRangeValidator("FromDate")]
         public DateTime? ToDate {  get; set; }
+
+        public List<string?> Tags { get; set; } = [];
         public override string ToString()
         {
             return $"Name: {PersonName}, Email: {Email}, Phone: {Phone}, Password: {Password}, Price: {Price}";
