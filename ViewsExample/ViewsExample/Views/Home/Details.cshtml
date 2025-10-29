@@ -1,0 +1,34 @@
+﻿@using ViewsExample.Models
+@model Person
+
+<!DOCTYPE html public xmlns="http://www.w3.org/1999/xhtml">
+<html>
+<head>
+    <title>Person Details</title>
+    <meta charset="utf-8" />
+    <link href="~/stylesheet.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="page-content">
+    <h1>Person Details</h1>
+    <div class="box w-50">
+            <h3>@Model.Name</h3>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>Gender</td>
+                        <td>@Model.PersonGender</td>
+                    </tr>
+                    <tr>
+                        <td>Date of Birth</td>
+                        <td>@Model.DateOfBirth?.ToString()</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+
+    <a href="/home">Go Back</a>
+    </div>
+    
+</body>
+</html>
