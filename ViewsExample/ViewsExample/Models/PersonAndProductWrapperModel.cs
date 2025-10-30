@@ -1,8 +1,10 @@
-﻿namespace ViewsExample.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ViewsExample.Models
 {
     public class PersonAndProductWrapperModel
     {
-        public Person PersonData { get; set; }
-        public Product ProductData { get; set; }
+        public required Person PersonData { get; set; }
+        public required Product ProductData { get; set; }
     }
 }
