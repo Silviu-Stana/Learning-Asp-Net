@@ -1,0 +1,13 @@
+﻿<h1>Home</h1>
+
+@{
+    ViewData["Title"] = "Home";
+    ViewData["ListTitle"] = "Countries";
+    ViewData["ListItems"] = new List<string>() { "USA", "Mexico", "Taiwan", "Japan" };
+    ListModel listModel = new();
+    listModel.Title = "Countries";
+    listModel.Items = ["USA", "Canada", "Germany"];
+}
+
+<partial name="_ListPartialView" model="listModel"></partial>
+
