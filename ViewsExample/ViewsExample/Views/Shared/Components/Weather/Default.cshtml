@@ -1,0 +1,22 @@
+﻿@model IEnumerable<CityWeather>
+
+@foreach (CityWeather city in Model)
+{
+    string backgroundColor = "blue-back";
+
+    if (city.TemperatureFahrenheit < 44) backgroundColor = "blue-back";
+    else if (city.TemperatureFahrenheit < 75) backgroundColor = "green-back";
+    else backgroundColor = "orange-back";
+
+    <div class="box @backgroundColor float-left inline-block margin-left">
+        <div class="">
+            <h3 class="margin-bottom">@city.CityName</h3>
+            <div class="text-dark-grey">@city.DateAndTime</div>
+            <a href="/weather/@city.CityUniqueCode">Details</a>
+        </div>
+
+        <div class="float-right text-right">
+            <h1>@city.TemperatureFahrenheit<span class="text-grey">&deg;F</span></h1>
+        </div>
+    </div>
+}

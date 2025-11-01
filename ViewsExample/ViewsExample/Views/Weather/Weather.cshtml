@@ -9,7 +9,10 @@
 <body>
 <div class="container">
     <div class="page-content">
-        @{int count=0;}
+
+
+            @await Component.InvokeAsync("Weather")
+
         @foreach (CityWeather city in Model)
             {
                 string backgroundColor = "blue-back";
