@@ -1,9 +1,16 @@
 using Services;
 using ServiceContracts;
+using Autofac.Extensions.DependencyInjection;
+using Autofac;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Services.AddControllersWithViews();
-builder.Services.Add(new ServiceDescriptor(typeof(ICitiesService), typeof(CitiesService), ServiceLifetime.Transient));
+builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
+{
+    containerBuilder.RegisterType<CitiesService>().As<ICitiesService>().InstancePerDependency(); //Add transient
+});
+//builder.Services.AddScoped<ICitiesService, CitiesService>();
 
 var app = builder.Build();
 
