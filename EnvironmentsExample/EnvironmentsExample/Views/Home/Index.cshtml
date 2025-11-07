@@ -1,0 +1,56 @@
+﻿@model Stock
+@{
+    ViewBag.Title = "Home";
+}
+
+<h1>Home</h1>
+
+<div class="box trading-panel">
+    <div class="flex trading-panel-flex">
+        <div id="stock-price-panel">
+            <div class="stock">
+                <h1 class="stock-title">@Model.StockSymbol</h1>
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Current:</td>
+                            <th>
+                                <small>$</small>
+                                <span class="stock-price">@Model.CurrentPrice.ToString("N")</span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>High:</td>
+                            <th>
+                                <small>$</small>
+                                <span class="stock-price">@Model.HighestPrice.ToString("N")</span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>Lowest:</td>
+                            <th>
+                                <small>$</small>
+                                <span class="stock-price">@Model.LowestPrice.ToString("N")</span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>Open:</td>
+                            <th>
+                                <small>$</small>
+                                <span class="stock-price">@Model.OpenPrice.ToString("N")</span>
+                            </th>
+                        </tr>
+                    </tbody>
+                    <tr>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<environment include="Development">
+    <button class="button button-blue-back">Only Dev Button</button>
+</environment>
