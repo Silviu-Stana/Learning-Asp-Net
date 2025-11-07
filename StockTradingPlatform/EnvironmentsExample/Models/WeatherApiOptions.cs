@@ -1,4 +1,4 @@
-﻿namespace EnvironmentsExample
+﻿namespace Core.Models
 {
     public class WeatherApiOptions
     {

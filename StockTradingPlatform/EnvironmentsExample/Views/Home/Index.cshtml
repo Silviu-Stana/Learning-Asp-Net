@@ -1,0 +1,59 @@
+﻿@model StockProfile
+@inject IConfiguration _configuration;
+
+@{
+    ViewBag.Title = "Home";
+
+    SocialMediaLinksOptions? SocialLinks = _configuration.GetSection("SocialMediaLinks").Get<SocialMediaLinksOptions>();
+    string price = @Model.Price.ToString("N");
+}
+
+<h1>Home</h1>
+
+<div class="box trading-panel">
+    <div class="flex trading-panel-flex">
+        <div id="stock-price-panel">
+            <div class="stock">
+                <h1 style="color: #0889a3;">@Model.StockName (@Model.StockSymbol)</h1>
+
+                <div class="flex">
+                    <p class="stock-price text-grey">$ </p>
+                    <span id="price" class="stock-price">@Model.Price</span>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="flex">
+    @if (SocialLinks?.Facebook != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Facebook">Facebook</a></div>
+    }
+
+    <environment exclude="Development">
+        @if (SocialLinks?.Instagram != null)
+        {
+            <div class="box"><a href="@SocialLinks?.Instagram">Instagram</a></div>
+        }
+    </environment>
+
+    @if (SocialLinks?.Twitter != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Twitter">Twitter</a></div>
+    }
+    @if (SocialLinks?.Youtube != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Youtube">Youtube</a></div>
+    }
+</div>
+
+
+
+<environment include="Development">
+    <button class="button button-blue-back">Only Dev Button</button>
+</environment>

@@ -227,9 +227,8 @@
     background-color: #ffffff;
 }
 
-.text-blue
-{
-    color: #0349a3;
+.text-blue {
+    color: #0a8ac6;
 }
 
 .text-green
@@ -560,12 +559,17 @@ a.link-hover:hover
 .stock-title
 {
     font-size: 2.2em;
-    color: #0a8ac6;
+}
+
+.currency-size {
+    font-size: 2.2em;
+    font-weight: bold;
 }
 
 .stock-price
 {
-    font-size: 4.5em;
+    font-size: 2.5em;
+    font-weight: bold; 
 }
 
 .trading-panel

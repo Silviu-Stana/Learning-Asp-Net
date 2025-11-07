@@ -1,4 +1,4 @@
-﻿namespace EnvironmentsExample.Models
+﻿namespace Core.Models
 {
     public class Stock
     {

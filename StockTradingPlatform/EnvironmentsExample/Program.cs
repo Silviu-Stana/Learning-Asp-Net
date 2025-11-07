@@ -1,12 +1,14 @@
-using EnvironmentsExample;
-using EnvironmentsExample.ServiceContracts;
-using EnvironmentsExample.Services;
+using Core.Models;
+using Services.Interfaces;
+using Services.Services;
+using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IFinnhubService, FinnhubService>();
 
+builder.Services.Configure<SocialMediaLinksOptions>(builder.Configuration.GetSection("SocialMediaLinks"));
 builder.Services.Configure<WeatherApiOptions>(builder.Configuration.GetSection("weatherapi"));
 
 
@@ -15,8 +17,6 @@ builder.Configuration.AddJsonFile("MyOwnConfig.json", optional: true, reloadOnCh
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
-
-app.Environment.IsEnvironment("Beta");
 
 
 app.Configuration["MyKey"] = "NewValue";
