@@ -15,6 +15,7 @@ namespace Tests
             _countriesService = new CountriesService();
         }
 
+        #region AddCountry
         //If Request null, throw exception
         [Fact]
         public void AddCountry_NullCountry()
@@ -55,13 +56,76 @@ namespace Tests
 
         //If ok, insert in country list
         [Fact]
-        public void AddCountry_Ok()
+        public void AddCountry_ProperRequestWorks()
         {
             CountryAddRequest? request = new() { CountryName = "Japan" };
 
             CountryResponse response = _countriesService.AddCountry(request);
+            List<CountryResponse> countries = _countriesService.GetAllCountries();
 
             Assert.True(response.CountryID != Guid.Empty);
+            //objA.Equals(objB) compares references, not values, we need to override the Equals method
+            Assert.Contains(response, countries);
         }
+        #endregion
+
+        #region GetAllCountries
+
+        [Fact]
+        public void GetAllCountries_ListIsEmptyByDefault()
+        {
+            List<CountryResponse> response = _countriesService.GetAllCountries();
+            Assert.Empty(response);
+        }
+
+        [Fact]
+        public void GetAllCountries_ReturnMultipleCountries()
+        {
+            List<CountryAddRequest> countryRequestList = new()
+            {
+                new () {CountryName= "Romania"},
+                new () {CountryName= "USA"},
+                new () {CountryName= "Japan"},
+            };
+
+            List<CountryResponse> countryResponses = [];
+
+            foreach (CountryAddRequest countryRequest in countryRequestList)
+            {
+                countryResponses.Add(_countriesService.AddCountry(countryRequest));
+            }
+
+            List<CountryResponse> actualCountries =  _countriesService.GetAllCountries();
+
+            Assert.Equal(countryRequestList.Count, actualCountries.Count);
+            foreach (var request in countryRequestList)
+            {
+                Assert.Contains(actualCountries, c=>c.CountryName==request.CountryName);
+            }
+        }
+        #endregion
+
+        #region GetCountryById
+        [Fact]
+        public void GetCountryById_NullCountryId ()
+        {
+            Guid? countryId = null;
+            CountryResponse? country = _countriesService.GetCountryById(countryId);
+            Assert.Null(country);
+        }
+
+        [Fact]
+        public void GetCountryById_ValidRequest()
+        {
+            CountryAddRequest countryAddRequest = new() { CountryName="China"};
+            CountryResponse addedCountry = _countriesService.AddCountry(countryAddRequest);
+
+            Guid? countryId = addedCountry.CountryID;
+
+            CountryResponse? country = _countriesService.GetCountryById(countryId);
+
+            Assert.Equal(addedCountry, country);
+        }
+        #endregion
     }
 }
