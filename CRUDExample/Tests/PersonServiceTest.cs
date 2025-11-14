@@ -5,16 +5,22 @@ using Entities;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using Services;
+using ServiceContracts.Enums;
+using Xunit.Abstractions;
 
 namespace Tests
 {
     public class PersonServiceTest
     {
         private readonly IPersonService _personService;
+        private readonly ICountriesService _countriesService;
+        private readonly ITestOutputHelper _testOutputHelper;
 
-        public PersonServiceTest()
+        public PersonServiceTest(ITestOutputHelper testOutputHelper)
         {
             _personService = new PersonService();
+            _countriesService = new CountriesService();
+            _testOutputHelper = testOutputHelper;
         }
 
         #region AddPerson
@@ -23,16 +29,211 @@ namespace Tests
         {
             PersonAddRequest? personAddRequest = null;
 
-            Assert.Throws<ArgumentNullException>(() =>_personService.AddPerson(personAddRequest));
+            Assert.Throws<ArgumentNullException>(() => _personService.AddPerson(personAddRequest));
         }
 
         [Fact]
         public void AddPerson_NameNull_ThrowsArgumentException()
         {
-            PersonAddRequest? personAddRequest = new() { Name=null};
+            PersonAddRequest? personAddRequest = new() { Name = null };
 
             Assert.Throws<ArgumentException>(() => _personService.AddPerson(personAddRequest));
         }
+
+        [Fact]
+        public void AddPerson_ProperData_InsertsInPersonList()
+        {
+            PersonAddRequest? personAddRequest = new()
+            {
+                Name = "Name",
+                Email = "email@gmail.com",
+                Address = "address",
+                CountryID = Guid.NewGuid(),
+                Gender = GenderOptions.Male,
+                DateOfBirth = DateTime.Parse("2000-01-01"),
+                ReceiveNewsLetters = true
+            };
+
+            PersonResponse response = _personService.AddPerson(personAddRequest);
+            List<PersonResponse> personList = _personService.GetAllPersons();
+
+            Assert.True(response.Id != Guid.Empty);
+            Assert.Contains(response, personList);
+        }
         #endregion
+
+        #region GetPersonByPersonID
+        //If we supply null, return null
+        [Fact]
+        public void GetPersonById_Null_ReturnsNull()
+        {
+            Guid? personId = null;
+
+            PersonResponse? personResponse = _personService.GetPersonById(personId);
+
+            Assert.Null(personResponse);
+        }
+
+
+        [Fact]
+        public void GetPersonById_ProperRequest_Succeds()
+        {
+            CountryAddRequest countryAddRequest = new() { CountryName = "Canada" };
+            CountryResponse countryResponse = _countriesService.AddCountry(countryAddRequest);
+
+            PersonAddRequest personAddRequest = new()
+            {
+                Name = "John",
+                Email = "email@gmail.com",
+                Address = "address",
+                CountryID = countryResponse.CountryID,
+                DateOfBirth = DateTime.Parse("2000-01-01"),
+                Gender = GenderOptions.Male,
+                ReceiveNewsLetters = false
+            };
+
+            PersonResponse addedPerson = _personService.AddPerson(personAddRequest);
+
+            PersonResponse? person = _personService.GetPersonById(addedPerson.Id);
+
+            Assert.Equal(addedPerson, person);
+
+        }
+        #endregion
+
+        #region GetAllPersons
+        [Fact]
+        //by default empty list
+        public void GetAllPersons_ByDefault_EmptyList()
+        {
+            List<PersonResponse> personResponses = _personService.GetAllPersons();
+            Assert.Empty(personResponses);
+        }
+
+        [Fact]
+        public void GetAllPersons_Add3People_ReturnsListOf3People()
+        {
+            List<PersonAddRequest> personAddRequests = AddMultiplePersons();
+
+            List<PersonResponse> personResponseList = new();
+
+            foreach (PersonAddRequest request in personAddRequests)
+            {
+                PersonResponse personResponse = _personService.AddPerson(request);
+                personResponseList.Add(personResponse);
+            }
+
+            _testOutputHelper.WriteLine("Expected: ");
+            foreach (PersonResponse p in personResponseList) _testOutputHelper.WriteLine(p.ToString());
+
+            List<PersonResponse> people = _personService.GetAllPersons();
+
+            _testOutputHelper.WriteLine("Actual: ");
+            foreach (PersonResponse p in people) _testOutputHelper.WriteLine(p.ToString());
+
+
+            foreach (PersonResponse p in people) Assert.Contains(p, people);
+        }
+        #endregion
+
+
+        #region GetFilteredPersons
+        //If search text empty, return all persons.
+        [Fact]
+        public void GetFilteredPersons_EmptySearchText_ReturnsAllPersons()
+        {
+            List<PersonAddRequest> personAddRequests = AddMultiplePersons();
+
+            List<PersonResponse> personResponseList = new();
+
+            foreach (PersonAddRequest request in personAddRequests)
+            {
+                PersonResponse personResponse = _personService.AddPerson(request);
+                personResponseList.Add(personResponse);
+            }
+
+            _testOutputHelper.WriteLine("Expected: ");
+            foreach (PersonResponse p in personResponseList) _testOutputHelper.WriteLine(p.ToString());
+
+            List<PersonResponse> people = _personService.GetFilteredPersons(nameof(Person.Name), "");
+
+            _testOutputHelper.WriteLine("Actual: ");
+            foreach (PersonResponse p in people) _testOutputHelper.WriteLine(p.ToString());
+
+
+            foreach (PersonResponse p in people) Assert.Contains(p, people);
+        }
+
+
+        [Fact]
+        public void GetFilteredPersons_EmptySearchText_ReturnsAllPersons1()
+        {
+            List<PersonAddRequest> personAddRequests = AddMultiplePersons();
+
+            List<PersonResponse> personResponseList = new();
+
+            foreach (PersonAddRequest request in personAddRequests)
+            {
+                PersonResponse personResponse = _personService.AddPerson(request);
+                personResponseList.Add(personResponse);
+            }
+
+            _testOutputHelper.WriteLine("Expected: ");
+            foreach (PersonResponse p in personResponseList) _testOutputHelper.WriteLine(p.ToString());
+
+            List<PersonResponse> people = _personService.GetFilteredPersons(nameof(Person.Name), "");
+
+            _testOutputHelper.WriteLine("Actual: ");
+            foreach (PersonResponse p in people) _testOutputHelper.WriteLine(p.ToString());
+
+
+            foreach (PersonResponse p in people) Assert.Contains(p, people);
+
+            #endregion
+        }
+
+        List<PersonAddRequest> AddMultiplePersons()
+        {
+            CountryAddRequest country1 = new() { CountryName = "USA" };
+            CountryAddRequest country2 = new() { CountryName = "India" };
+
+            CountryResponse countryResponse1 = _countriesService.AddCountry(country1);
+            CountryResponse countryResponse2 = _countriesService.AddCountry(country2);
+
+            PersonAddRequest personAddRequest = new()
+            {
+                Name = "Smith",
+                Email = "smith@gmail.com",
+                Address = "address",
+                CountryID = countryResponse1.CountryID,
+                DateOfBirth = DateTime.Parse("2002-05-06"),
+                Gender = GenderOptions.Male,
+                ReceiveNewsLetters = false
+            };
+
+            PersonAddRequest personAddRequest2 = new()
+            {
+                Name = "Ana",
+                Email = "ana@gmail.com",
+                Address = "address",
+                CountryID = countryResponse1.CountryID,
+                DateOfBirth = DateTime.Parse("2002-05-06"),
+                Gender = GenderOptions.Female,
+                ReceiveNewsLetters = true
+            };
+
+            PersonAddRequest personAddRequest3 = new()
+            {
+                Name = "Bob",
+                Email = "bob@gmail.com",
+                Address = "address",
+                CountryID = countryResponse1.CountryID,
+                DateOfBirth = DateTime.Parse("2002-05-06"),
+                Gender = GenderOptions.Male,
+                ReceiveNewsLetters = false
+            };
+
+            return [personAddRequest, personAddRequest2, personAddRequest3];
+        }
     }
 }

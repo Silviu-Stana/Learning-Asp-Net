@@ -38,6 +38,11 @@ namespace ServiceContracts.DTO
                 Address ==person.Address && ReceiveNewsLetters ==person.ReceiveNewsLetters && Age ==person.Age;
         }
 
+        public override string ToString()
+        {
+            return $"Person Id: {Id}, Name: {Name}, Email: {Email}, DateOfBirth: {DateOfBirth?.ToString("dd MMM yyyy")}, Gender: {Gender}, Country ID: {CountryID}, Country: {CountryName}, ReceiveNewsletters: {ReceiveNewsLetters}";
+        }
+
         public override int GetHashCode() => base.GetHashCode();
     }
 
