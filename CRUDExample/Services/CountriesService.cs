@@ -6,18 +6,13 @@ namespace Services
 {
     public class CountriesService : ICountriesService
     {
-        private readonly List<Country> _countries;
-
-        public CountriesService()
-        {
-            _countries = new List<Country>();
-        }
+        private readonly List<Country> _countries = [];
 
         public CountryResponse AddCountry(CountryAddRequest? countryAddRequest)
         {
             if(countryAddRequest == null) throw new ArgumentNullException(nameof(countryAddRequest));
             if(countryAddRequest.CountryName == null) throw new ArgumentNullException(countryAddRequest.CountryName);
-            if (_countries.Where(c => c.CountryName == countryAddRequest.CountryName).Any()) throw new ArgumentException("Country name already exists");
+            if (_countries.Any(c => c.CountryName == countryAddRequest.CountryName)) throw new ArgumentException("Country name already exists");
 
             Country country = countryAddRequest.ToCountry();
 

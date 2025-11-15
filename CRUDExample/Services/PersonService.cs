@@ -60,7 +60,59 @@ namespace Services
 
         public List<PersonResponse> GetFilteredPersons(string searchBy, string? searchString)
         {
-            throw new NotImplementedException();
+            List<PersonResponse> all = GetAllPersons();
+            List<PersonResponse> matchingPersons = all;
+
+            if (string.IsNullOrEmpty(searchBy) || string.IsNullOrEmpty(searchString)) return matchingPersons;
+
+            switch (searchBy)
+            {
+                case nameof(Person.Name):
+                    matchingPersons = FilterByName(all, searchString);
+                    break;
+                case nameof(Person.DateOfBirth):
+                    matchingPersons = FilterByDateOfBirth(all, searchString);
+                    break;
+                case nameof(Person.Gender):
+                    matchingPersons = FilterByGender(all, searchString);
+                    break;
+                case nameof(Person.CountryID):
+                    matchingPersons = FilterByCountryID(all, searchString);
+                    break;
+                case nameof(Person.Address):
+                    matchingPersons = FilterByAddress(all, searchString);
+                    break;
+                default:
+                    matchingPersons = all;
+                    break;
+            }
+
+            return matchingPersons;
+        }
+
+        private List<PersonResponse> FilterByName(List<PersonResponse> allPeople, string searchString)
+        {
+            return allPeople.Where(p => !string.IsNullOrEmpty(p.Name) ? p.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) : true).ToList();
+        }
+
+        private List<PersonResponse> FilterByDateOfBirth(List<PersonResponse> allPeople, string searchString)
+        {
+            return allPeople.Where(p => (p.DateOfBirth != null) ? p.DateOfBirth.Value.ToString("dd MMMM yyyy").Contains(searchString, StringComparison.OrdinalIgnoreCase) : true).ToList();
+        }
+
+        private List<PersonResponse> FilterByGender(List<PersonResponse> allPeople, string searchString)
+        {
+            return allPeople.Where(p => !string.IsNullOrEmpty(p.Gender) ? p.Gender.Contains(searchString, StringComparison.OrdinalIgnoreCase) : true).ToList();
+        }
+
+        private List<PersonResponse> FilterByCountryID(List<PersonResponse> allPeople, string searchString)
+        {
+            return allPeople.Where(p => p.CountryID == null || p.CountryID.Value.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        private List<PersonResponse> FilterByAddress(List<PersonResponse> allPeople, string searchString)
+        {
+            return allPeople.Where(p => !string.IsNullOrEmpty(p.Address) ? p.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase) : true).ToList();
         }
     }
 }

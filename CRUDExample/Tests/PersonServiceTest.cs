@@ -119,8 +119,7 @@ namespace Tests
 
             foreach (PersonAddRequest request in personAddRequests)
             {
-                PersonResponse personResponse = _personService.AddPerson(request);
-                personResponseList.Add(personResponse);
+                personResponseList.Add(_personService.AddPerson(request));
             }
 
             _testOutputHelper.WriteLine("Expected: ");
@@ -148,8 +147,7 @@ namespace Tests
 
             foreach (PersonAddRequest request in personAddRequests)
             {
-                PersonResponse personResponse = _personService.AddPerson(request);
-                personResponseList.Add(personResponse);
+                personResponseList.Add(_personService.AddPerson(request));
             }
 
             _testOutputHelper.WriteLine("Expected: ");
@@ -164,9 +162,8 @@ namespace Tests
             foreach (PersonResponse p in people) Assert.Contains(p, people);
         }
 
-
         [Fact]
-        public void GetFilteredPersons_EmptySearchText_ReturnsAllPersons1()
+        public void GetFilteredPersons_SearchingPersonName_ReturnsMatch()
         {
             List<PersonAddRequest> personAddRequests = AddMultiplePersons();
 
@@ -174,20 +171,20 @@ namespace Tests
 
             foreach (PersonAddRequest request in personAddRequests)
             {
-                PersonResponse personResponse = _personService.AddPerson(request);
-                personResponseList.Add(personResponse);
+                personResponseList.Add(_personService.AddPerson(request));
             }
 
-            _testOutputHelper.WriteLine("Expected: ");
-            foreach (PersonResponse p in personResponseList) _testOutputHelper.WriteLine(p.ToString());
+            List<PersonResponse> people = _personService.GetFilteredPersons(nameof(Person.Name), "bo"); //Mary is a name included in AddMultiplePersons();
 
-            List<PersonResponse> people = _personService.GetFilteredPersons(nameof(Person.Name), "");
-
+            _testOutputHelper.WriteLine("Expected: only names that contain the letters 'bo'\n");
             _testOutputHelper.WriteLine("Actual: ");
-            foreach (PersonResponse p in people) _testOutputHelper.WriteLine(p.ToString());
+            foreach (PersonResponse p in people) _testOutputHelper.WriteLine(p.Name);
 
-
-            foreach (PersonResponse p in people) Assert.Contains(p, people);
+            foreach (PersonResponse p in people)
+            {
+                if(p.Name != null)
+                if(p.Name.Contains("bo", StringComparison.OrdinalIgnoreCase)) Assert.Contains(p, people);
+            }
 
             #endregion
         }
@@ -233,7 +230,18 @@ namespace Tests
                 ReceiveNewsLetters = false
             };
 
-            return [personAddRequest, personAddRequest2, personAddRequest3];
+            PersonAddRequest personAddRequest4 = new()
+            {
+                Name = "Bobby",
+                Email = "bob@gmail.com",
+                Address = "address",
+                CountryID = countryResponse1.CountryID,
+                DateOfBirth = DateTime.Parse("2002-05-06"),
+                Gender = GenderOptions.Male,
+                ReceiveNewsLetters = false
+            };
+
+            return [personAddRequest, personAddRequest2, personAddRequest3, personAddRequest4];
         }
     }
 }
