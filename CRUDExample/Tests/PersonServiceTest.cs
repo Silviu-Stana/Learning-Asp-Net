@@ -111,7 +111,7 @@ namespace Tests
         }
 
         [Fact]
-        public void GetAllPersons_Add3People_ReturnsListOf3People()
+        public void GetAllPersons_Add4People_ReturnsListOf4People()
         {
             List<PersonAddRequest> personAddRequests = AddMultiplePersons();
 
@@ -167,11 +167,9 @@ namespace Tests
         {
             List<PersonAddRequest> personAddRequests = AddMultiplePersons();
 
-            List<PersonResponse> personResponseList = new();
-
             foreach (PersonAddRequest request in personAddRequests)
             {
-                personResponseList.Add(_personService.AddPerson(request));
+                _personService.AddPerson(request);
             }
 
             List<PersonResponse> people = _personService.GetFilteredPersons(nameof(Person.Name), "bo"); //Mary is a name included in AddMultiplePersons();
@@ -182,13 +180,46 @@ namespace Tests
 
             foreach (PersonResponse p in people)
             {
-                if(p.Name != null)
-                if(p.Name.Contains("bo", StringComparison.OrdinalIgnoreCase)) Assert.Contains(p, people);
+                if (p.Name != null)
+                {
+                    if (p.Name.Contains("bo", StringComparison.OrdinalIgnoreCase)) Assert.Contains(p, people);
+                }
             }
-
-            #endregion
         }
 
+        #endregion
+        
+        #region GetSortedPersons
+
+        [Fact]
+        public void GetSortedPersons_ByName_Descending()
+        {
+            List<PersonAddRequest> personAddRequests = AddMultiplePersons();
+
+            List<PersonResponse> allPeople = new();
+
+            foreach (PersonAddRequest request in personAddRequests)
+            {
+                allPeople.Add(_personService.AddPerson(request));
+            }
+
+            List<PersonResponse> sortedPersons = _personService.GetPersonsSortedByName(allPeople, nameof(Person.Name), SortOrderOptions.DESC);
+
+            allPeople = allPeople.OrderByDescending(p => p.Name).ToList();
+            
+            _testOutputHelper.WriteLine("Expected: names are sorted alphabetically, from Z to A\n");
+            _testOutputHelper.WriteLine("Actual: ");
+            foreach (PersonResponse p in sortedPersons) _testOutputHelper.WriteLine(p.Name);
+
+            for (int i = 0; i < allPeople.Count; i++)
+            {
+                Assert.Equal(allPeople[i], sortedPersons[i]);
+            }
+
+        }
+        
+
+            #endregion
         List<PersonAddRequest> AddMultiplePersons()
         {
             CountryAddRequest country1 = new() { CountryName = "USA" };
