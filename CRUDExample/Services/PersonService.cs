@@ -31,7 +31,7 @@ namespace Services
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             
-            ValidationHelper.ModelValidation(request);
+            ValidationHelper.CheckForValidationErrors(request);
 
             Person person = request.ToPerson();
 
@@ -93,9 +93,48 @@ namespace Services
 
         public List<PersonResponse> GetPersonsSortedByName(List<PersonResponse> allPersons, string sortBy, SortOrderOptions sortOrder)
         {
-            throw new NotImplementedException();
+            if(string.IsNullOrEmpty(sortBy)) return allPersons;
+
+            //Use reflection, otherwise there's way too many properties for a switch statement.
+            var prop = typeof(PersonResponse).GetProperty(sortBy);
+            if(prop == null) return allPersons;
+
+            bool isString = prop.PropertyType == typeof(string);
+
+            if(sortOrder == SortOrderOptions.ASC)
+            {
+                return isString ? allPersons.OrderBy(p => (string?)prop.GetValue(p), StringComparer.OrdinalIgnoreCase).ToList()
+                                        : allPersons.OrderBy(p=>prop.GetValue(p)).ToList();
+            }
+            else
+            {
+                return isString ? allPersons.OrderByDescending(p => (string?)prop.GetValue(p), StringComparer.OrdinalIgnoreCase).ToList()
+                                        : allPersons.OrderByDescending(p => prop.GetValue(p)).ToList();
+            }
         }
 
+        public PersonResponse UpdatePerson(PersonUpdateRequest? request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(Person));
+
+            ValidationHelper.CheckForValidationErrors(request);
+
+            Person? match = _persons.FirstOrDefault(p => p.Id == request.PersonID);
+            if (match == null) throw new ArgumentException("Given Person ID does not exists");
+
+            //Update
+            match.Name = request.Name;
+            match.Email = request.Email;
+            match.Address = request.Address;
+            match.Gender = request.Gender.ToString();
+            match.DateOfBirth = request.DateOfBirth;
+            match.CountryID = request.CountryID;
+            match.ReceiveNewsLetters = request.ReceiveNewsLetters;
+
+            return match.ToPersonResponse();
+        }
+
+        #region SortingFunctions
         private List<PersonResponse> FilterByName(List<PersonResponse> allPeople, string searchString)
         {
             return allPeople.Where(p => !string.IsNullOrEmpty(p.Name) ? p.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) : true).ToList();
@@ -120,5 +159,8 @@ namespace Services
         {
             return allPeople.Where(p => !string.IsNullOrEmpty(p.Address) ? p.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase) : true).ToList();
         }
+
+
+        #endregion
     }
 }

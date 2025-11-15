@@ -135,7 +135,6 @@ namespace Tests
         }
         #endregion
 
-
         #region GetFilteredPersons
         //If search text empty, return all persons.
         [Fact]
@@ -217,9 +216,65 @@ namespace Tests
             }
 
         }
-        
 
-            #endregion
+
+        #endregion
+
+        #region UpdatePerson
+        [Fact]
+        public void UpdatePerson_Null_ThrowsArgumentNull()
+        {
+            PersonUpdateRequest? update = null;
+
+            Assert.Throws<ArgumentNullException>(() => _personService.UpdatePerson(update));
+        }
+
+        [Fact]
+        public void UpdatePerson_InvalidPersonId_ThrowsArgumentException()
+        {
+            PersonUpdateRequest update = new() { PersonID=Guid.NewGuid()};
+
+            Assert.Throws<ArgumentException>(() => _personService.UpdatePerson(update));
+        }
+
+        [Fact]
+        public void UpdatePerson_PersonNameNull_ThrowsArgumentException()
+        {
+            List<PersonAddRequest> people = AddMultiplePersons();
+
+            foreach (PersonAddRequest p in people) _personService.AddPerson(p);
+
+            PersonResponse person = _personService.GetAllPersons().First();
+
+            PersonUpdateRequest updatedPerson = person.ToPersonUpdateRequest();
+
+            updatedPerson.Name = null;
+
+            Assert.Throws<ArgumentException>(() => _personService.UpdatePerson(updatedPerson));
+        }
+
+        [Fact]
+        public void UpdatePerson_UpdateNameAndEmail()
+        {
+            List<PersonAddRequest> people = AddMultiplePersons();
+
+            foreach (PersonAddRequest p in people) _personService.AddPerson(p);
+
+            PersonResponse bob = _personService.GetFilteredPersons(nameof(Person.Name), "Bob").First();
+
+            PersonUpdateRequest personToUpdate = bob.ToPersonUpdateRequest();
+
+            personToUpdate.Name = "Zack";
+            personToUpdate.Email = "zack@gmail.com";
+
+            PersonResponse update =  _personService.UpdatePerson(personToUpdate);
+
+            PersonResponse? updatedPerson =  _personService.GetPersonById(update.Id);
+
+            Assert.Equal(updatedPerson, update);
+        }
+        #endregion
+
         List<PersonAddRequest> AddMultiplePersons()
         {
             CountryAddRequest country1 = new() { CountryName = "USA" };
@@ -255,7 +310,7 @@ namespace Tests
                 Name = "Bob",
                 Email = "bob@gmail.com",
                 Address = "address",
-                CountryID = countryResponse1.CountryID,
+                CountryID = countryResponse2.CountryID,
                 DateOfBirth = DateTime.Parse("2002-05-06"),
                 Gender = GenderOptions.Male,
                 ReceiveNewsLetters = false
@@ -266,7 +321,7 @@ namespace Tests
                 Name = "Bobby",
                 Email = "bob@gmail.com",
                 Address = "address",
-                CountryID = countryResponse1.CountryID,
+                CountryID = countryResponse2.CountryID,
                 DateOfBirth = DateTime.Parse("2002-05-06"),
                 Gender = GenderOptions.Male,
                 ReceiveNewsLetters = false
