@@ -1,4 +1,4 @@
-﻿namespace Services.Interfaces
+﻿namespace Models.Interfaces
 {
     public interface IFinnhubService
     {

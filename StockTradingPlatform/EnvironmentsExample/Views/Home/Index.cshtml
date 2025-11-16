@@ -8,8 +8,7 @@
     string price = @Model.Price.ToString("N");
 }
 
-<h1>Home</h1>
-
+<br/>
 <div class="box trading-panel">
     <div class="flex trading-panel-flex">
         <div id="stock-price-panel">
@@ -29,7 +28,7 @@
 </div>
 
 
-<div class="flex">
+@* <div class="flex">
     @if (SocialLinks?.Facebook != null)
     {
         <div class="box"><a href="@SocialLinks?.Facebook">Facebook</a></div>
@@ -50,10 +49,10 @@
     {
         <div class="box"><a href="@SocialLinks?.Youtube">Youtube</a></div>
     }
-</div>
+</div> *@
 
 
 
-<environment include="Development">
+@* <environment include="Development">
     <button class="button button-blue-back">Only Dev Button</button>
-</environment>
+</environment> *@

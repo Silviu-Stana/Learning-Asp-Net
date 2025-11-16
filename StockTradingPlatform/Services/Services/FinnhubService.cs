@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using Services.Interfaces;
+﻿using Models.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Text.Json;
 

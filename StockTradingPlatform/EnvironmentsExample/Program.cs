@@ -1,12 +1,12 @@
-using Core.Models;
-using Services.Interfaces;
+using Models.Models;
+using Models.Interfaces;
 using Services.Services;
-using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IFinnhubService, FinnhubService>();
+builder.Services.AddScoped<IStockService, StockService>();
 
 builder.Services.Configure<SocialMediaLinksOptions>(builder.Configuration.GetSection("SocialMediaLinks"));
 builder.Services.Configure<WeatherApiOptions>(builder.Configuration.GetSection("weatherapi"));
