@@ -19,7 +19,7 @@ namespace Tests
         public PersonServiceTest(ITestOutputHelper testOutputHelper)
         {
             _personService = new PersonService();
-            _countriesService = new CountriesService();
+            _countriesService = new CountriesService(false);
             _testOutputHelper = testOutputHelper;
         }
 
@@ -240,9 +240,9 @@ namespace Tests
         [Fact]
         public void UpdatePerson_PersonNameNull_ThrowsArgumentException()
         {
-            List<PersonAddRequest> people = AddMultiplePersons();
+            PersonAddRequest personAdd = AddOnePerson();
 
-            foreach (PersonAddRequest p in people) _personService.AddPerson(p);
+            _personService.AddPerson(personAdd);
 
             PersonResponse person = _personService.GetAllPersons().First();
 
@@ -256,11 +256,11 @@ namespace Tests
         [Fact]
         public void UpdatePerson_UpdateNameAndEmail()
         {
-            List<PersonAddRequest> people = AddMultiplePersons();
+            PersonAddRequest personAdd = AddOnePerson();
 
-            foreach (PersonAddRequest p in people) _personService.AddPerson(p);
+            _personService.AddPerson(personAdd);
 
-            PersonResponse bob = _personService.GetFilteredPersons(nameof(Person.Name), "Bob").First();
+            PersonResponse bob = _personService.GetAllPersons().First();
 
             PersonUpdateRequest personToUpdate = bob.ToPersonUpdateRequest();
 
@@ -274,6 +274,49 @@ namespace Tests
             Assert.Equal(updatedPerson, update);
         }
         #endregion
+
+        #region DeletePerson
+        [Fact]
+        public void DeletePerson_ValidId_ReturnsTrue()
+        {
+            PersonAddRequest personAdd = AddOnePerson();
+
+            PersonResponse personResponse = _personService.AddPerson(personAdd);
+
+            bool isDeleted = _personService.DeletePerson(personResponse.Id);
+
+            Assert.True(isDeleted);
+        }
+
+        [Fact]
+        public void DeletePerson_InvalidId_ReturnsFalse()
+        {
+            bool isDeleted = _personService.DeletePerson(Guid.NewGuid());
+            Assert.False(isDeleted);
+        }
+        #endregion
+
+
+        #region FakeDataFunctions
+        PersonAddRequest AddOnePerson()
+        {
+            CountryAddRequest country = new() { CountryName = "USA" };
+
+            CountryResponse countryResponse = _countriesService.AddCountry(country);
+
+            PersonAddRequest personAddRequest = new()
+            {
+                Name = "Smith",
+                Email = "smith@gmail.com",
+                Address = "address",
+                CountryID = countryResponse.CountryID,
+                DateOfBirth = DateTime.Parse("2002-05-06"),
+                Gender = GenderOptions.Male,
+                ReceiveNewsLetters = false
+            };
+
+            return personAddRequest;
+        }
 
         List<PersonAddRequest> AddMultiplePersons()
         {
@@ -329,5 +372,6 @@ namespace Tests
 
             return [personAddRequest, personAddRequest2, personAddRequest3, personAddRequest4];
         }
+        #endregion
     }
 }

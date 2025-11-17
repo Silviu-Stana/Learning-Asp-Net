@@ -1,0 +1,27 @@
+﻿@{
+    var SearchBy = @ViewBag.CurrentSearchBy;
+    var SearchString = @ViewBag.CurrentSearchString;
+    var ColumnName = @ViewBag.ColumnName;
+    var DisplayName = @ViewBag.DisplayName;
+}
+
+@if (ViewBag.CurrentSortOrder == SortOrderOptions.ASC.ToString() && ViewBag.CurrentSortBy == ViewBag.ColumnName)
+{
+    <th>
+        <a href="~/persons/index?searchBy=@SearchBy&searchString=@SearchString&sortBy=@ColumnName&sortOrder=DESC">@DisplayName</a>
+        <i class="fa-solid fa-sort-up" />
+    </th>
+}
+else if (ViewBag.CurrentSortOrder == SortOrderOptions.DESC.ToString() && ViewBag.CurrentSortBy == ViewBag.ColumnName)
+{
+    <th>
+        <a href="~/persons/index?searchBy=@SearchBy&searchString=@SearchString&sortBy=@ColumnName&sortOrder=ASC">@DisplayName</a>
+        <i class="fa-solid fa-sort-down" />
+    </th>
+}
+//No arrow icons when the column is NOT currently Selected
+else{
+<th>
+        <a href="~/persons/index?searchBy=@SearchBy&searchString=@SearchString&sortBy=@ColumnName&sortOrder=ASC">@DisplayName</a>
+</th>
+}
