@@ -5,18 +5,21 @@ using ServiceContracts.Enums;
 
 namespace CRUDExample.Controllers
 {
+    [Route("persons")]
     public class PersonsController : Controller
     {
         private readonly IPersonService _personService;
+        private readonly ICountriesService _countriesService;
 
-        public PersonsController(IPersonService personService)
+        public PersonsController(IPersonService personService, ICountriesService countriesService)
         {
             _personService = personService;
+            _countriesService = countriesService;
         }
 
-        [Route("/")]
-        [Route("persons/index")]
-        public IActionResult Index(string? searchString, string searchBy, string sortBy=nameof(PersonResponse.Name), SortOrderOptions sortOrder = SortOrderOptions.ASC)
+        [Route("/")] //the / overrides the prefix route
+        [Route("index")]
+        public IActionResult Index(string? searchString, string searchBy, string sortBy = nameof(PersonResponse.Name), SortOrderOptions sortOrder = SortOrderOptions.ASC)
         {
             //Search
             ViewBag.SearchFields = new Dictionary<string, string>()
@@ -42,6 +45,32 @@ namespace CRUDExample.Controllers
             ViewBag.CurrentSortOrder = sortOrder.ToString();
 
             return View(sortedPersons);
+        }
+
+        [Route("create")]
+        [HttpGet]
+        public IActionResult Create()
+        {
+            List<CountryResponse> countries = _countriesService.GetAllCountries();
+            ViewBag.Countries = countries;
+
+            return View();
+        }
+
+        [HttpPost]
+        [Route("create")]
+        public IActionResult Create(PersonAddRequest personAddRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                List<CountryResponse> countries = _countriesService.GetAllCountries();
+                ViewBag.Countries = countries;
+                ViewBag.Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return View();
+            }
+
+            PersonResponse personResponse = _personService.AddPerson(personAddRequest);
+            return RedirectToAction("Index", "Persons");
         }
     }
 }
