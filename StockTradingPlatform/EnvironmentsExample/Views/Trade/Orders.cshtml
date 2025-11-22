@@ -1,0 +1,77 @@
+﻿@model Orders
+
+@{
+    ViewBag.Title = "Orders";
+}
+
+<br />
+<div class="">
+    <div class="flex">
+        <div class="box trading-panel flex-1 stock">
+                <div class="p">
+                    <h2 class="text-grey mb">Buy Orders</h2>
+                    @foreach (var order in Model.BuyOrders)
+                    {
+                        <h2>@order.StockName (@order.StockSymbol)</h2>
+                        <p class="mb">
+                            <span style="font-weight: bold">@order.Quantity</span> shares at
+                            <span style="font-weight: bold">$@order.Price</span>
+                        </p>
+                        <p class="mb">Trade Amount: <span style="font-weight: bold">$@order.TradeAmount</span></p>
+                        <p style="font-weight: lighter" class="text-grey">@order.OrderDate.ToString("dd MMMM yyyy hh:mm:ss tt")</p>
+                        <hr />
+                        <br />
+                    }
+                </div>
+            </div>
+        <div class="box trading-panel flex-1 stock">
+            <div class="p">
+                <h2 class="text-grey mb">Sell Orders</h2>
+                @foreach (var order in Model.SellOrders)
+                {
+                    <h2>@order.StockName (@order.StockSymbol)</h2>
+                    <p class="mb">
+                        <span style="font-weight: bold">@order.Quantity</span> shares at
+                        <span style="font-weight: bold">$@order.Price</span>
+                    </p>
+                    <p class="mb">Trade Amount: <span style="font-weight: bold">$@order.TradeAmount</span></p>
+                    <p style="font-weight: lighter" class="text-grey">@order.OrderDate.ToString("dd MMMM yyyy hh:mm:ss tt")</p>
+                    <hr />
+                    <br />
+                }
+            </div>
+        </div>
+    </div>
+    <div>
+    </div>
+</div>
+
+
+@* <div class="flex">
+    @if (SocialLinks?.Facebook != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Facebook">Facebook</a></div>
+    }
+
+    <environment exclude="Development">
+        @if (SocialLinks?.Instagram != null)
+        {
+            <div class="box"><a href="@SocialLinks?.Instagram">Instagram</a></div>
+        }
+    </environment>
+
+    @if (SocialLinks?.Twitter != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Twitter">Twitter</a></div>
+    }
+    @if (SocialLinks?.Youtube != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Youtube">Youtube</a></div>
+    }
+</div> *@
+
+
+
+@* <environment include="Development">
+    <button class="button button-blue-back">Only Dev Button</button>
+</environment> *@

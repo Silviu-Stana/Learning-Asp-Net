@@ -7,6 +7,7 @@ namespace Services.Services
     public class StockService : IStockService
     {
         private readonly List<BuyOrder> _buyOrders = [];
+        private readonly List<SellOrder> _sellOrders = [];
 
         public async Task<BuyOrderResponse> CreateBuyOrder(BuyOrderRequest? request)
         {
@@ -26,28 +27,49 @@ namespace Services.Services
         }
         public async Task<List<BuyOrderResponse>> GetBuyOrders()
         {
-            List<BuyOrderResponse> buyOrderResponses = [];
+            List<BuyOrderResponse> buyOrders = [];
 
             await Task.Yield();
 
-            foreach (var buyOrder in _buyOrders)
+            foreach (var order in _buyOrders)
             {
-                buyOrderResponses.Add(BuyOrderResponse.ConvertFrom(buyOrder));
+                buyOrders.Add(BuyOrderResponse.ConvertFrom(order));
             }
 
-            return buyOrderResponses;
+            return buyOrders;
         }
 
-        public Task<BuyOrderResponse> CreateSellOrder(SellOrderRequest? request)
+        public async Task<SellOrderResponse> CreateSellOrder(SellOrderRequest? request)
         {
-            throw new NotImplementedException();
+            if (request == null) throw new ArgumentNullException(nameof(request));
+
+            if (request.Quantity <= 0 || request.Quantity > 100000) throw new ArgumentException("Quantity must be between 1 and 100000.", nameof(request.Quantity));
+            if (request.Price <= 0 || request.Price > 100000) throw new ArgumentException("Price must be a positive number, below 100000", nameof(request.Price));
+            if (string.IsNullOrWhiteSpace(request.StockSymbol)) throw new ArgumentException("Stock symbol cannot be empty.", nameof(request.StockSymbol));
+
+            await Task.Yield();
+
+            var sellOrder = request.ConvertToSellOrder();
+            _sellOrders.Add(sellOrder);
+            var response = SellOrderResponse.ConvertFrom(sellOrder);
+
+            return response;
         }
 
 
 
-        public Task<List<SellOrderResponse>> GetSellOrders()
+        public async Task<List<SellOrderResponse>> GetSellOrders()
         {
-            throw new NotImplementedException();
+            List<SellOrderResponse> sellOrders = [];
+
+            await Task.Yield();
+
+            foreach (var order in _sellOrders)
+            {
+                sellOrders.Add(SellOrderResponse.ConvertFrom(order));
+            }
+
+            return sellOrders;
         }
     }
 }

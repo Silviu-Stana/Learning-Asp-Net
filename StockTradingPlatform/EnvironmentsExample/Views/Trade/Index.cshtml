@@ -1,1 +1,74 @@
 ﻿@model StockProfile
+@inject IConfiguration _configuration;
+
+@{
+    ViewBag.Title = "Home";
+
+    SocialMediaLinksOptions? SocialLinks = _configuration.GetSection("SocialMediaLinks").Get<SocialMediaLinksOptions>();
+    string price = @Model.Price.ToString("N");
+}
+
+<br/>
+<div class="box trading-panel flex">
+    <div class="flex trading-panel-flex flex">
+        <div id="stock-price-panel">
+            <div class="stock">
+                <h1 style="color: #0889a3;">@Model.StockName (@Model.StockSymbol)</h1>
+                <div class="flex">
+                    <p class="stock-price text-grey">$ </p>
+                    <span id="price" class="stock-price">@Model.Price</span>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="orderForm" asp-controller="Trade" method="post">
+        <input type="hidden" name="StockSymbol" value="@Model.StockSymbol" />
+        <input type="hidden" name="StockName" value="@Model.StockName" />
+        <input type="hidden" name="Price" value="@Model.Price" />
+        <input type="hidden" name="OrderDate" value="@DateTime.Now" />
+
+        <h3 style="margin-bottom:10px;" class="text-grey">New Order</h3>
+        <label class="form-label" for="quantity">Quantity</label>
+        <div><input class="quantity" type="number" name="Quantity" /></div>
+
+        <button type="submit" onclick="setFormAction('buy')" class="button button-panel button-green-back">Buy</button>
+        <button type="submit" onclick="setFormAction('sell')" class="button button-panel button-red-back">Sell</button>
+    </form>
+
+    <script>
+        function setFormAction(action) {
+            document.getElementById('orderForm').action = '/trade/' + action;
+        }
+    </script>
+</div>
+
+
+@* <div class="flex">
+    @if (SocialLinks?.Facebook != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Facebook">Facebook</a></div>
+    }
+
+    <environment exclude="Development">
+        @if (SocialLinks?.Instagram != null)
+        {
+            <div class="box"><a href="@SocialLinks?.Instagram">Instagram</a></div>
+        }
+    </environment>
+
+    @if (SocialLinks?.Twitter != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Twitter">Twitter</a></div>
+    }
+    @if (SocialLinks?.Youtube != null)
+    {
+        <div class="box"><a href="@SocialLinks?.Youtube">Youtube</a></div>
+    }
+</div> *@
+
+
+
+@* <environment include="Development">
+    <button class="button button-blue-back">Only Dev Button</button>
+</environment> *@

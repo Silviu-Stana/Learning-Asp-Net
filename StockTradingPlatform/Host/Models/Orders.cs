@@ -1,0 +1,12 @@
+﻿using Models.DTO;
+using System;
+
+namespace Models.Models
+{
+    public class Orders
+    {
+        public List<BuyOrderResponse> BuyOrders { get; set; } = [];
+
+        public List<SellOrderResponse> SellOrders { get; set; } = [];
+    }
+}
