@@ -7,7 +7,7 @@
 <h1>Persons</h1>
 <a href="~/persons/create">Create Person</a>
 
-<form action="~/persons/index" method="get">
+<form asp-controller="Persons" asp-action="Index" method="get">
     <div class="box flex">
         <div class="flex-1">
             <select class="form-input" name="searchBy">
@@ -39,14 +39,15 @@
     <table class="table w-100 mt">
         <thead>
             <tr>
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Name)}, { "DisplayName", "Person Name"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Email)}, { "DisplayName", "Email"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.DateOfBirth)}, { "DisplayName", "Date of Birth"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Age)}, { "DisplayName", "Age"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Gender)}, { "DisplayName", "Gender"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.CountryName)}, { "DisplayName", "Country"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Address)}, { "DisplayName", "Address"} })
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.ReceiveNewsLetters)}, { "DisplayName", "Receive Newsletters"} })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Name) }, { "DisplayName", "Person Name" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Email) }, { "DisplayName", "Email" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.DateOfBirth) }, { "DisplayName", "Date of Birth" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Age) }, { "DisplayName", "Age" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Gender) }, { "DisplayName", "Gender" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.CountryName) }, { "DisplayName", "Country" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.Address) }, { "DisplayName", "Address" } })
+                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) { { "ColumnName", nameof(PersonResponse.ReceiveNewsLetters) }, { "DisplayName", "Receive Newsletters" } })
+                <th>Options</th>
             </tr>
         </thead>
         <tbody>
@@ -61,6 +62,12 @@
                     <td>@p.CountryName</td>
                     <td>@p.Address</td>
                     <td>@p.ReceiveNewsLetters</td>
+                    <td style="width:3%">
+                        <a asp-controller="Persons" asp-action="Edit" asp-route-personId="@p.Id">Edit</a>
+                    </td>
+                    <td style="width:3%">
+                        <a asp-controller="Persons" asp-action="Delete" asp-route-personId="@p.Id">Delete</a>
+                    </td>
                 </tr>
             }
         </tbody>

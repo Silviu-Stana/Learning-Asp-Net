@@ -1,13 +1,15 @@
-﻿@model PersonAddRequest
+﻿@model PersonUpdateRequest
 @{
-    ViewBag.Title = "Create Person";
+    ViewBag.Title = "Edit Person";
 }
 
 <a href="~/persons/index">Back to Persons List</a>
-<h2>Create Person</h2>
+<h2>Edit Person</h2>
 
 <div class="container w-50">
-    <form asp-controller="Persons" asp-action="Create" method="post">
+    <form asp-controller="Persons" asp-action="Edit" method="post">
+        <input type="hidden" asp-for="PersonID" />
+
         @* Name *@
         <div class="form-field flex">
             <div class="w-25"><label asp-for="Name" class="form-label pt">Person Name</label></div>
@@ -96,7 +98,7 @@
         <div class="form-field flex">
             <div class="w-25"></div>
             <div class="flex-1">
-                <button class="button button-green-back" src="">Create</button>
+                <button class="button button-green-back" src="">Update</button>
 
                 @* <div asp-validation-summary="All" class="text-red"></div> *@
                 @if (ViewBag.Errors != null)

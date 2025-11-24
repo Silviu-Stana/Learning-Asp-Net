@@ -10,13 +10,16 @@ namespace ServiceContracts.DTO
     /// </summary>
     public class PersonAddRequest
     {
-        [Required(ErrorMessage = "Person Name cannot be blank.")]
+        [Required(ErrorMessage = "Name required.")]
         public string? Name { get; set; }
-        [Required(ErrorMessage = "Email cannot be blank.")]
+        [Required(ErrorMessage = "Email required.")]
         [EmailAddress]
+        [DataType(DataType.EmailAddress)]
         public string? Email { get; set; }
         public DateTime? DateOfBirth { get; set; }
+        [Required(ErrorMessage ="Gender required")]
         public GenderOptions? Gender { get; set; }
+        [Required(ErrorMessage ="Please select a country.")]
         public Guid? CountryID { get; set; }
         public string? Address { get; set; }
         public bool ReceiveNewsLetters { get; set; }

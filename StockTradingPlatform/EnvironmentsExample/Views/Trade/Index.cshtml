@@ -23,9 +23,9 @@
         </div>
     </div>
     <form id="orderForm" asp-controller="Trade" method="post">
-        <input type="hidden" name="StockSymbol" value="@Model.StockSymbol" />
-        <input type="hidden" name="StockName" value="@Model.StockName" />
-        <input type="hidden" name="Price" value="@Model.Price" />
+        <input type="hidden" asp-for="StockSymbol" />
+        <input type="hidden" asp-for="StockName" />
+        <input type="hidden" asp-for="Price" />
         <input type="hidden" name="OrderDate" value="@DateTime.Now" />
 
         <h3 style="margin-bottom:10px;" class="text-grey">New Order</h3>
