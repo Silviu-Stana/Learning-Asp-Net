@@ -44,7 +44,7 @@ namespace ServiceContracts
         /// <param name="sortBy">Property name to sort by.</param>
         /// <param name="sortOrder">Ascending or descending.</param>
         /// <returns>An ordered person list.</returns>
-        Task<List<PersonResponse>> GetSortedPersons(List<PersonResponse> allPersons, string sortBy,
+        List<PersonResponse> GetSortedPersons(List<PersonResponse> allPersons, string sortBy,
             SortOrderOptions sortOrder);
 
         /// <summary>

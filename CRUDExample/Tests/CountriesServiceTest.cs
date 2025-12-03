@@ -19,50 +19,50 @@ namespace Tests
         #region AddCountry
         //If Request null, throw exception
         [Fact]
-        public void AddCountry_NullCountry()
+        public async Task AddCountry_NullCountry()
         {
             CountryAddRequest? request = null;
 
-            Assert.Throws<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                _countriesService.AddCountry(request);
+                await _countriesService.AddCountry(request);
             });
         }
 
         //Give null name, throw
         [Fact]
-        public void AddCountry_NullCountryName()
+        public async Task AddCountry_NullCountryName()
         {
             CountryAddRequest? request = new() { CountryName = null };
 
-            Assert.Throws<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                _countriesService.AddCountry(request);
+                await _countriesService.AddCountry(request);
             });
         }
 
         //If duplicate, throw
         [Fact]
-        public void AddCountry_DuplicateName()
+        public async Task AddCountry_DuplicateName()
         {
             CountryAddRequest? request1 = new() { CountryName = "USA" };
             CountryAddRequest? request2 = new() { CountryName = "USA" };
 
-            Assert.Throws<ArgumentException>(() =>
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
             {
-                _countriesService.AddCountry(request1);
-                _countriesService.AddCountry(request2);
+                await _countriesService.AddCountry(request1);
+                await _countriesService.AddCountry(request2);
             });
         }
 
         //If ok, insert in country list
         [Fact]
-        public void AddCountry_ProperRequestWorks()
+        public async Task AddCountry_ProperRequestWorks()
         {
             CountryAddRequest? request = new() { CountryName = "Japan" };
 
-            CountryResponse response = _countriesService.AddCountry(request);
-            List<CountryResponse> countries = _countriesService.GetAllCountries();
+            CountryResponse response = await _countriesService.AddCountry(request);
+            List<CountryResponse> countries = await _countriesService.GetAllCountries();
 
             Assert.True(response.CountryID != Guid.Empty);
             //objA.Equals(objB) compares references, not values, we need to override the Equals method
@@ -73,14 +73,14 @@ namespace Tests
         #region GetAllCountries
 
         [Fact]
-        public void GetAllCountries_ListIsEmptyByDefault()
+        public async Task GetAllCountries_ListIsEmptyByDefault()
         {
-            List<CountryResponse> response = _countriesService.GetAllCountries();
+            List<CountryResponse> response = await _countriesService.GetAllCountries();
             Assert.Empty(response);
         }
 
         [Fact]
-        public void GetAllCountries_ReturnMultipleCountries()
+        public async Task GetAllCountries_ReturnMultipleCountries()
         {
             List<CountryAddRequest> countryRequestList = new()
             {
@@ -93,10 +93,10 @@ namespace Tests
 
             foreach (CountryAddRequest countryRequest in countryRequestList)
             {
-                countryResponses.Add(_countriesService.AddCountry(countryRequest));
+                countryResponses.Add(await _countriesService.AddCountry(countryRequest));
             }
 
-            List<CountryResponse> actualCountries =  _countriesService.GetAllCountries();
+            List<CountryResponse> actualCountries =  await _countriesService.GetAllCountries();
 
             Assert.Equal(countryRequestList.Count, actualCountries.Count);
             foreach (var request in countryRequestList)
@@ -108,22 +108,22 @@ namespace Tests
 
         #region GetCountryById
         [Fact]
-        public void GetCountryById_NullCountryId ()
+        public async Task GetCountryById_NullCountryId ()
         {
             Guid? countryId = null;
-            CountryResponse? country = _countriesService.GetCountryById(countryId);
+            CountryResponse? country = await _countriesService.GetCountryById(countryId);
             Assert.Null(country);
         }
 
         [Fact]
-        public void GetCountryById_ValidRequest()
+        public async Task GetCountryById_ValidRequest()
         {
             CountryAddRequest countryAddRequest = new() { CountryName="China"};
-            CountryResponse addedCountry = _countriesService.AddCountry(countryAddRequest);
+            CountryResponse addedCountry = await _countriesService.AddCountry(countryAddRequest);
 
             Guid? countryId = addedCountry.CountryID;
 
-            CountryResponse? country = _countriesService.GetCountryById(countryId);
+            CountryResponse? country = await _countriesService.GetCountryById(countryId);
 
             Assert.Equal(addedCountry, country);
         }
