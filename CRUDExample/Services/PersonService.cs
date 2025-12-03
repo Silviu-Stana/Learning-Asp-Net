@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using CsvHelper;
 using Entities;
 using Microsoft.EntityFrameworkCore;
 using ServiceContracts;
@@ -186,6 +188,25 @@ namespace Services
             await _db.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<MemoryStream> GetPersonsCSV()
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+
+            CsvWriter csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture, leaveOpen: true);
+
+            csvWriter.WriteHeader<PersonResponse>(); //Id, Name.....
+            csvWriter.NextRecord();
+
+            List<PersonResponse> persons = await _db.Persons.Include("Country").Select(p=>p.ToPersonResponse()).ToListAsync();
+
+            await csvWriter.WriteRecordsAsync(persons);
+
+            //After above, cursor will be at the end. If we don't reset it, clicking export a 2nd time would print empty.
+            stream.Position = 0;
+            return stream;
         }
     }
 }

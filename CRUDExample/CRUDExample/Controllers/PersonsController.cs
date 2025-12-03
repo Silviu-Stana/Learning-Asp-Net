@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Rotativa.AspNetCore;
+using Rotativa.AspNetCore.Options;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
@@ -52,7 +54,7 @@ namespace CRUDExample.Controllers
         public async Task<IActionResult> Create()
         {
             List<CountryResponse> countries = await _countriesService.GetAllCountries();
-            ViewBag.Countries = countries.Select(c=>new SelectListItem() { Text= c.CountryName, Value=c.CountryID.ToString()});
+            ViewBag.Countries = countries.Select(c => new SelectListItem() { Text = c.CountryName, Value = c.CountryID.ToString() });
 
             return View();
         }
@@ -132,5 +134,25 @@ namespace CRUDExample.Controllers
             await _personService.DeletePerson(updateRequest.PersonID);
             return RedirectToAction("Index");
         }
+
+        [Route("PersonsPDF")]
+        public async Task<IActionResult> PersonsPDF()
+        {
+            List<PersonResponse> persons = await _personService.GetAllPersons();
+
+            return new ViewAsPdf("PersonsPDF", persons, ViewData)
+            {
+                PageMargins = new Margins() { Top = 20, Bottom = 20, Left = 20, Right = 20 },
+                PageOrientation = Orientation.Landscape
+            };
         }
+
+        [Route("PersonsCSV")]
+        public async Task<IActionResult> PersonsCSV()
+        {
+            MemoryStream memoryStream = await _personService.GetPersonsCSV();
+
+            return File(memoryStream, "application/octet-stream", "persons.csv");
+        }
+    }
 }
