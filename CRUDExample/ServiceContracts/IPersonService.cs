@@ -14,20 +14,20 @@ namespace ServiceContracts
         /// </summary>
         /// <param name="request">Person to add</param>
         /// <returns>The same person details.</returns>
-        PersonResponse AddPerson(PersonAddRequest? request);
+        Task<PersonResponse> AddPerson(PersonAddRequest? request);
 
         /// <summary>
         /// Retrieves a list of all persons.
         /// </summary>
         /// <returns>A list of <see cref="PersonResponse"/> objects representing all persons.</returns>
-        List<PersonResponse> GetAllPersons();
+        Task<List<PersonResponse>> GetAllPersons();
 
         /// <summary>
         /// Returns person object based on ID.
         /// </summary>
         /// <param name="personId"></param>
         /// <returns>Returns a match, if it exists.</returns>
-        PersonResponse? GetPersonById(Guid? personId);
+        Task<PersonResponse?> GetPersonById(Guid? personId);
 
         /// <summary>
         /// Return all person objects that match the given search field, and search string.
@@ -35,7 +35,7 @@ namespace ServiceContracts
         /// <param name="searchBy">Search field to use</param>
         /// <param name="searchString">String to search</param>
         /// <returns></returns>
-        List<PersonResponse> GetFilteredPersons(string searchBy, string? searchString);
+        Task<List<PersonResponse>> GetFilteredPersons(string searchBy, string? searchString);
 
         /// <summary>
         /// Returns list of ordered persons.
@@ -44,7 +44,7 @@ namespace ServiceContracts
         /// <param name="sortBy">Property name to sort by.</param>
         /// <param name="sortOrder">Ascending or descending.</param>
         /// <returns>An ordered person list.</returns>
-        List<PersonResponse> GetPersonsSortedByName(List<PersonResponse> allPersons, string sortBy,
+        Task<List<PersonResponse>> GetSortedPersons(List<PersonResponse> allPersons, string sortBy,
             SortOrderOptions sortOrder);
 
         /// <summary>
@@ -52,13 +52,13 @@ namespace ServiceContracts
         /// </summary>
         /// <param name="personUpdateRequest">Person details to update, including person ID</param>
         /// <returns>Updated PersonResponse object</returns>
-        PersonResponse UpdatePerson(PersonUpdateRequest? request);
+        Task<PersonResponse> UpdatePerson(PersonUpdateRequest? request);
 
         /// <summary>
         /// Deletes person with given id.
         /// </summary>
         /// <param name="personId">Id to delete.</param>
         /// <returns>True if deletion is successful.</returns>
-        bool DeletePerson(Guid? personId);
+        Task<bool> DeletePerson(Guid? personId);
     }
 }

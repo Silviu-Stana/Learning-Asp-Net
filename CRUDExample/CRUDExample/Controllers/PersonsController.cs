@@ -40,7 +40,7 @@ namespace CRUDExample.Controllers
 
 
             //SORT
-            List<PersonResponse> sortedPersons = _personService.GetPersonsSortedByName(persons, sortBy, sortOrder);
+            List<PersonResponse> sortedPersons = _personService.GetSortedPersons(persons, sortBy, sortOrder);
 
             ViewBag.CurrentSortBy = sortBy;
             ViewBag.CurrentSortOrder = sortOrder.ToString();
