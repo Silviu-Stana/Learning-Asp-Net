@@ -5,6 +5,7 @@ using Rotativa.AspNetCore.Options;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
+using System.IO;
 
 namespace CRUDExample.Controllers
 {
@@ -153,6 +154,14 @@ namespace CRUDExample.Controllers
             MemoryStream memoryStream = await _personService.GetPersonsCSV();
 
             return File(memoryStream, "application/octet-stream", "persons.csv");
+        }
+
+        [Route("PersonsExcel")]
+        public async Task<IActionResult> PersonsExcel()
+        {
+            MemoryStream memoryStream = await _personService.GetPersonsExcel();
+
+            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "persons.xlsx");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using ServiceContracts.DTO;
+﻿using Microsoft.AspNetCore.Http;
+using ServiceContracts.DTO;
 
 namespace ServiceContracts
 {
@@ -29,5 +30,13 @@ namespace ServiceContracts
         /// <param name="countryId">CountryID to search</param>
         /// <returns>Match as a CountryResponse object.</returns>
         Task<CountryResponse?> GetCountryById(Guid? countryId);
+
+
+        /// <summary>
+        /// Uploads countries from excel file into the database.
+        /// </summary>
+        /// <param name="formFile">Excel file with list of countries</param>
+        /// <returns>Number of inserted countries</returns>
+        Task<int> UploadCountriesFromExcelFile(IFormFile formFile);
     }
 }
