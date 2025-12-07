@@ -66,7 +66,7 @@ namespace OpenGl
         {
             LoadShaders();
             LoadBuffers();
-            LoadTexture("crate.jpg");
+            LoadTexture("Assets/Textures/crate.jpg");
         }
 
         private void LoadShaders()
