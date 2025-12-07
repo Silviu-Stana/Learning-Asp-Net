@@ -8,6 +8,7 @@ namespace OpenGl.Screens
 
     public class MainMenuScreen : Screen
     {
+        private int _width;
         // Button rectangles: x, y, width, height
         private RectangleF _triangleButton = new RectangleF(300, 150, 200, 50);
         private RectangleF _squareButton = new RectangleF(300, 250, 200, 50);
@@ -21,17 +22,18 @@ namespace OpenGl.Screens
         public override void Load(int width, int height)
         {
             _button = new ButtonRenderer(width, height);
-            _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y); 
+            _button.Resize(width, height); 
 
         }
 
 
         public override void Resize(ResizeEventArgs e)
         {
-            _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y);
+            _width=e.Width;
+            // _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y);
         }
         public override void Update(FrameEventArgs args) {
-            _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y);
+            _button.Resize(ParentWindow.FramebufferSize.X, ParentWindow.FramebufferSize.Y);
         }
 
 

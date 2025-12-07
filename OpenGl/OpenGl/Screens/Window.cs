@@ -22,7 +22,7 @@ namespace OpenGl.Screens
             _currentScreen.ParentWindow = this; // Give the screen a reference to us
 
             // 3. Load the new screen's resources
-            _currentScreen.Load(Size.X, Size.Y);
+            _currentScreen.Load(FramebufferSize.X, FramebufferSize.Y);
         }
 
         // --- GameWindow Overrides ---
@@ -58,14 +58,15 @@ namespace OpenGl.Screens
 
             // Flip Y for screen coordinates (0,0 bottom-left)
             Vector2 mouse = new Vector2(MousePosition.X, Size.Y - MousePosition.Y);
-
+Console.WriteLine(MousePosition.X + " ," +(Size.Y-MousePosition.Y));
+            
             _currentScreen?.MouseDown(e, mouse);
         }
 
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
-            GL.Viewport(0, 0, Size.X, Size.Y);
+            GL.Viewport(0, 0, FramebufferSize.X, FramebufferSize.Y);
             _currentScreen?.Resize(e);
         }
 
