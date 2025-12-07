@@ -5,12 +5,8 @@ using System.Collections.Generic;
 
 namespace Entities
 {
-    public class PersonsDbContext : DbContext
+    public class PersonsDbContext(DbContextOptions options) : DbContext(options)
     {
-        public PersonsDbContext(DbContextOptions options) : base(options) {
-            
-        }
-
         public DbSet<Person> Persons { get; set; }
         public DbSet<Country> Countries { get; set; }
 
