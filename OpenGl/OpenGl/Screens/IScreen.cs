@@ -6,7 +6,7 @@ namespace OpenGl.Screens
     public interface IScreen : IDisposable
     {
         // Reference to the main window to allow screen switching
-        public AppWindow ParentWindow { get; set; }
+        public Window ParentWindow { get; set; }
 
         // Methods called by the ParentWindow's GameLoop
         void Load(int width, int height);

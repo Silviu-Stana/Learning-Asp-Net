@@ -14,6 +14,8 @@ namespace OpenGl.Screens
         private RectangleF _cubeButton = new RectangleF(300, 350, 200, 50);
         private RectangleF _textureButton = new RectangleF(300, 450, 200, 50);
 
+
+
         private ButtonRenderer? _button;
 
         public override void Load(int width, int height)
@@ -26,13 +28,15 @@ namespace OpenGl.Screens
 
         public override void Resize(ResizeEventArgs e)
         {
+            _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y);
         }
-        public override void Update(FrameEventArgs args) { }
+        public override void Update(FrameEventArgs args) {
+            _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y);
+        }
 
-        
+
         public override void Render(FrameEventArgs args)
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Disable(EnableCap.DepthTest); // important for 2D UI
 
             _button?.DrawButton(_triangleButton.X, _triangleButton.Y, _triangleButton.Width, _triangleButton.Height, new Vector4(1, 0, 0, 1), 20, 15, "Triangle");

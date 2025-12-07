@@ -1,8 +1,7 @@
 ﻿using OpenGl.Text;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using SixLabors.Fonts;
-using SixLabors.ImageSharp.PixelFormats;
+using static System.Net.Mime.MediaTypeNames;
 
 public class ButtonRenderer
 {
@@ -12,6 +11,8 @@ public class ButtonRenderer
     public TextDrawer textDrawer;
     private int _framebufferWidth;
     private int _framebufferHeight;
+    private string _text="";
+    private float _x, _y;
     public ButtonRenderer(int windowWidth, int windowHeight)
     {
         _shader = new Shader("Assets/Shaders/button.vert", "Assets/Shaders/button.frag");
@@ -29,7 +30,7 @@ public class ButtonRenderer
 
         GL.BindVertexArray(0);
 
-        _projection = Matrix4.CreateOrthographicOffCenter(0, windowWidth, 0, windowHeight, -1, 1);
+        _projection = Matrix4.CreateOrthographicOffCenter(0, _framebufferWidth, 0, _framebufferHeight, -1, 1);
         
         Resize(windowWidth, windowHeight);
     }
@@ -41,6 +42,7 @@ public class ButtonRenderer
 
         GL.Viewport(0, 0, framebufferWidth, framebufferHeight);
         _projection = Matrix4.CreateOrthographicOffCenter(0, framebufferWidth, 0, framebufferHeight, -1, 1);
+        textDrawer.DrawString(_text, _x + framebufferWidth / 2, _y + framebufferHeight / 2);
     }
     
     /// <summary>
@@ -48,6 +50,9 @@ public class ButtonRenderer
     /// </summary>
     public void DrawButton(float x, float y, float width, float height, Vector4 color, float cornerRadius = 0, int cornerSegments = 8, string text="Triangle")
     {
+        _x = x;
+        _y = y;
+        _text= text;
 
         var vertices = GenerateButtonVertices(x, y, width, height, cornerRadius, cornerSegments);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);

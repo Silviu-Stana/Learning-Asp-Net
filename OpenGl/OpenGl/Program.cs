@@ -21,7 +21,7 @@ namespace OpenGl
 
             var gameSettings = new GameWindowSettings{ UpdateFrequency = 60.0};
 
-            using var window = new AppWindow(gameSettings, nativeSettings);
+            using var window = new Window(gameSettings, nativeSettings);
             window.Run();
         }
     }

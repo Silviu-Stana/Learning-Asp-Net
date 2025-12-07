@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenGl.Screens
 {
-    public class AppWindow(GameWindowSettings g, NativeWindowSettings n) : GameWindow(g, n)
+    public class Window(GameWindowSettings g, NativeWindowSettings n) : GameWindow(g, n)
     {
         // 💡 The current screen (state) being displayed
         private IScreen? _currentScreen;

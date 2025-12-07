@@ -6,7 +6,7 @@ namespace OpenGl
 {
     public abstract class Screen : IScreen
     {
-        public AppWindow ParentWindow { get; set; }
+        public Window ParentWindow { get; set; }
 
         // Abstract methods force implementation in derived classes
         public abstract void Load(int width, int height);
