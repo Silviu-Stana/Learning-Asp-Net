@@ -2,9 +2,7 @@
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using System.Drawing;
-using System.Drawing.Imaging;
-using static System.Net.Mime.MediaTypeNames;
+using OpenGl.Text;
 
 namespace OpenGl.Windows
 {
@@ -14,12 +12,13 @@ namespace OpenGl.Windows
         public float XAdvance;            // How far to move cursor after drawing
     }
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class MainMenuScreen : Screen
     {
         // Button rectangles: x, y, width, height
-        private readonly RectangleF triangleButton = new RectangleF(300, 150, 200, 50);
-        private readonly RectangleF squareButton = new RectangleF(300, 250, 200, 50);
-        private readonly RectangleF cubeButton = new RectangleF(300, 350, 200, 50);
+        private RectangleF triangleButton = new RectangleF(300, 150, 200, 50);
+        private RectangleF squareButton = new RectangleF(300, 250, 200, 50);
+        private RectangleF cubeButton = new RectangleF(300, 350, 200, 50);
 
         // Define the radius for the rounded corners (e.g., 10 pixels)
         private const float CornerRadius = 20.0f;
@@ -27,15 +26,16 @@ namespace OpenGl.Windows
         private const int CornerSegments = 15;
 
 
-        // 💡 TEXT RENDERING FIELDS
-        private int _fontTextureId;
-        private const string FontName = "Arial";
-        private const int FontSize = 18;
-        private const int FontAtlasSize = 256; // Texture dimensions (must be power of two)
-        private readonly Dictionary<char, GlyphInfo> _glyphInfo = new Dictionary<char, GlyphInfo>();
+        private TextDrawer textDrawer= new();
 
         public override void Load(int width, int height)
         {
+
+        }
+
+        public override void Resize(ResizeEventArgs e)
+        {
+
         }
 
         public override void Update(FrameEventArgs args) { }
@@ -120,7 +120,7 @@ namespace OpenGl.Windows
             float textY = y + (h / 2); // Center of the button in bottom-up coordinates
 
 
-            DrawString(text, textX, textY);
+            textDrawer.DrawString(text, textX, textY);
         }
 
 
@@ -150,8 +150,6 @@ namespace OpenGl.Windows
             GL.End();
         }
 
-        public override void Resize(ResizeEventArgs e) { }
-
         public struct RectangleF
         {
             public float X, Y, Width, Height;
@@ -159,81 +157,10 @@ namespace OpenGl.Windows
             public bool Contains(Vector2 point) => point.X >= X && point.X <= X + Width && point.Y >= Y && point.Y <= Y + Height;
         }
 
-        private readonly System.Drawing.Font _uiFont = new("Arial", 16);
 
-        private void DrawString(string text, float centerX, float centerY)
-        {
-            int tex = CreateTextTexture(text, _uiFont, out int w, out int h);
 
-            // Center text
-            float x = centerX - w / 2f;
-            float y = centerY - h / 2f;
+        
 
-            DrawTexture(tex, x, y, w, h);
-
-            GL.DeleteTexture(tex); // Not needed long-term, so delete now
-        }
-
-        private void DrawTexture(int texId, float x, float y, float w, float h)
-        {
-            GL.Enable(EnableCap.Texture2D);
-            GL.BindTexture(TextureTarget.Texture2D, texId);
-            GL.Color4(Color4.White);
-
-            GL.Begin(PrimitiveType.Quads);
-
-            GL.TexCoord2(0, 1); GL.Vertex2(x, y);
-            GL.TexCoord2(1, 1); GL.Vertex2(x + w, y);
-            GL.TexCoord2(1, 0); GL.Vertex2(x + w, y + h);
-            GL.TexCoord2(0, 0); GL.Vertex2(x, y + h);
-
-            GL.End();
-
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-            GL.Disable(EnableCap.Texture2D);
-        }
-
-        private int CreateTextTexture(string text, System.Drawing.Font font, out int width, out int height)
-        {
-            using Bitmap bmp = new Bitmap(1, 1);
-            using Graphics g = Graphics.FromImage(bmp);
-
-            // Measure the required text size
-            SizeF size = g.MeasureString(text, font);
-            width = (int)Math.Ceiling(size.Width);
-            height = (int)Math.Ceiling(size.Height);
-
-            using Bitmap tex = new Bitmap(width, height);
-            using Graphics gfx = Graphics.FromImage(tex);
-            gfx.Clear(Color.Transparent);
-            gfx.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-
-            // Draw text
-            gfx.DrawString(text, font, Brushes.White, 0, 0);
-
-            // Upload to OpenGL
-            int texture = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, texture);
-
-            BitmapData data = tex.LockBits(
-                new Rectangle(0, 0, tex.Width, tex.Height),
-                ImageLockMode.ReadOnly,
-                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-            GL.TexImage2D(TextureTarget.Texture2D, 0,
-                PixelInternalFormat.Rgba,
-                data.Width, data.Height,
-                0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
-                PixelType.UnsignedByte,
-                data.Scan0);
-
-            tex.UnlockBits(data);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
-            return texture;
-        }
+       
     }
 }
