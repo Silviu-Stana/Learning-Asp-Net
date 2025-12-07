@@ -4,13 +4,13 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
-public class TexturedCubeWindow : GameWindow
+public class TexturedCubeScreen : GameWindow
 {
     private TexturedCube _texturedCube;
     private Matrix4 _view;
     private Matrix4 _projection;
 
-    public TexturedCubeWindow(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
+    public TexturedCubeScreen(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
         : base(gameSettings, nativeSettings)
     {
         _texturedCube = new TexturedCube();

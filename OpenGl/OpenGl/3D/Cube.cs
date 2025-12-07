@@ -14,6 +14,13 @@ namespace OpenGl
         private Matrix4 _view;
         private Matrix4 _projection;
 
+        // Animation time and current rotation
+        private float _time = 0.0f;
+        private float _currentRotationX = 0.0f;
+        private float _currentRotationY = 0.0f;
+
+        private float _aspectRatio;
+
         public void Load(int windowWidth, int windowHeight)
         {
             float[] vertices =
@@ -73,6 +80,40 @@ namespace OpenGl
             _projection = Matrix4.CreatePerspectiveFieldOfView(
                 MathHelper.DegreesToRadians(60f),
                 windowWidth / (float)windowHeight,
+                0.1f,
+                100f
+            );
+
+            // Initial camera setup (View matrix is static unless you move the camera)
+            _view = Matrix4.LookAt(new Vector3(2, 2, 3), Vector3.Zero, Vector3.UnitY);
+
+            // Set initial projection
+            Resize(windowWidth, windowHeight);
+        }
+
+        //Handles animation Every frame.
+        public void Update(float timeDelta)
+        {
+            // Accumulate time for animation
+            _time += timeDelta;
+
+            // Calculate new rotation angles
+            // Use timeDelta (dTime) for frame-rate independent movement
+            _currentRotationY += 1.0f * timeDelta; // Rotate 1.0 radian per second around Y
+            _currentRotationX += 0.5f * timeDelta; // Rotate 0.5 radians per second around X
+        }
+
+
+        //Recalculate Projection Matrix
+        public void Resize(int width, int height)
+        {
+            if (height == 0) height = 1; // Avoid division by zero
+            _aspectRatio = width / (float)height;
+
+            // Recalculate the Projection matrix with the new aspect ratio
+            _projection = Matrix4.CreatePerspectiveFieldOfView(
+                MathHelper.DegreesToRadians(60f),
+                _aspectRatio,
                 0.1f,
                 100f
             );
