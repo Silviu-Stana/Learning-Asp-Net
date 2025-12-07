@@ -1,7 +1,10 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using System.Drawing;
-using System.Drawing.Imaging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace OpenGl.Text
 {
@@ -9,11 +12,10 @@ namespace OpenGl.Text
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class TextDrawer
     {
-        private readonly System.Drawing.Font _uiFont = new("Arial", 16);
-
         public void DrawString(string text, float centerX, float centerY)
         {
-            int tex = CreateTextTexture(text, _uiFont, out int w, out int h);
+            var font = SystemFonts.CreateFont("Arial", 16);
+            int tex = CreateTextTexture(text, font, out int w, out int h);
 
             // Center text
             float x = centerX - w / 2f;
@@ -44,45 +46,54 @@ namespace OpenGl.Text
         }
 
        
-        private int CreateTextTexture(string text, System.Drawing.Font font, out int width, out int height)
+        private int CreateTextTexture(string text, Font font, out int width, out int height)
         {
-            using Bitmap bmp = new Bitmap(1, 1);
-            using Graphics g = Graphics.FromImage(bmp);
+            // Measure the text
+            TextOptions options = new TextOptions(font)
+            {
+                WrappingLength = float.MaxValue
+            };
+            FontRectangle rect = TextMeasurer.MeasureBounds(text, options);
 
-            // Measure the required text size
-            SizeF size = g.MeasureString(text, font);
-            width = (int)Math.Ceiling(size.Width);
-            height = (int)Math.Ceiling(size.Height);
+            width = (int)Math.Ceiling(rect.Width);
+            height = (int)Math.Ceiling(rect.Height);
 
-            using Bitmap tex = new Bitmap(width, height);
-            using Graphics gfx = Graphics.FromImage(tex);
-            gfx.Clear(Color.Transparent);
-            gfx.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            if (width <= 0) width = 1;
+            if (height <= 0) height = 1;
 
-            // Draw text
-            gfx.DrawString(text, font, Brushes.White, 0, 0);
+            // Create an ImageSharp image
+            using Image<Rgba32> img = new Image<Rgba32>(width, height);
 
-            // Upload to OpenGL
+            img.Mutate(ctx =>
+            {
+                ctx.Clear(Color.Transparent);
+                ctx.DrawText(text, font, Color.White, new PointF(0, 0));
+            });
+
+            // Upload image as OpenGL texture
             int texture = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, texture);
 
-            BitmapData data = tex.LockBits(
-                new Rectangle(0, 0, tex.Width, tex.Height),
-                ImageLockMode.ReadOnly,
-                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            // Lock pixel data
+            Rgba32[] pixels = new Rgba32[width * height];
+            img.CopyPixelDataTo(pixels);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0,
-                PixelInternalFormat.Rgba,
-                data.Width, data.Height,
+            GL.TexImage2D(
+                TextureTarget.Texture2D,
                 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
+                PixelInternalFormat.Rgba,
+                width,
+                height,
+                0,
+                PixelFormat.Rgba,
                 PixelType.UnsignedByte,
-                data.Scan0);
-
-            tex.UnlockBits(data);
+                pixels
+            );
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
             return texture;
         }

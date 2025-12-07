@@ -14,7 +14,8 @@ namespace OpenGl
                 ClientSize = new Vector2i(800, 600),
                 Title = "Main Menu",
                 // Compatibility: enables GL.Begin/GL.End functions
-                Profile = ContextProfile.Compatability,
+                API = ContextAPI.OpenGL,
+                Profile = ContextProfile.Core,
                 APIVersion = new Version(3, 3)
             };
 
