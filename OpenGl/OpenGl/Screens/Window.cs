@@ -57,8 +57,11 @@ namespace OpenGl.Screens
             base.OnMouseDown(e);
 
             // Flip Y for screen coordinates (0,0 bottom-left)
-            Vector2 mouse = new Vector2(MousePosition.X, Size.Y - MousePosition.Y);
-Console.WriteLine(MousePosition.X + " ," +(Size.Y-MousePosition.Y));
+            float mouseX = MousePosition.X;
+            float mouseY = ClientSize.Y - MousePosition.Y;
+
+            Vector2 mouse = new Vector2(mouseX, mouseY);
+            Console.WriteLine(mouse);
             
             _currentScreen?.MouseDown(e, mouse);
         }

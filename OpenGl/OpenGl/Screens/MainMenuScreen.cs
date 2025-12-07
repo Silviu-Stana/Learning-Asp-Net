@@ -10,30 +10,42 @@ namespace OpenGl.Screens
     {
         private int _width;
         // Button rectangles: x, y, width, height
-        private RectangleF _triangleButton = new RectangleF(300, 150, 200, 50);
-        private RectangleF _squareButton = new RectangleF(300, 250, 200, 50);
-        private RectangleF _cubeButton = new RectangleF(300, 350, 200, 50);
-        private RectangleF _textureButton = new RectangleF(300, 450, 200, 50);
+        private RectangleF _triangleButton = new RectangleF(300, 100, 200, 50);
+        private RectangleF _squareButton = new RectangleF(300, 200, 200, 50);
+        private RectangleF _cubeButton = new RectangleF(300, 300, 200, 50);
+        private RectangleF _textureButton = new RectangleF(300, 400, 200, 50);
 
 
+
+        public MainMenuScreen()
+        {
+            
+        }
 
         private ButtonRenderer? _button;
 
         public override void Load(int width, int height)
         {
             _button = new ButtonRenderer(width, height);
-            _button.Resize(width, height); 
+            _button.Resize(width, height);
 
         }
 
+        void RecalculateButtonPositions()
+        {
+            _triangleButton.X = ParentWindow.FramebufferSize.X / 2 - _triangleButton.Width/2;
+            _squareButton.X = ParentWindow.FramebufferSize.X / 2 - _squareButton.Width/2;
+            _cubeButton.X = ParentWindow.FramebufferSize.X / 2 - _cubeButton.Width/2;
+            _textureButton.X = ParentWindow.FramebufferSize.X / 2- _textureButton.Width/2;
+        }
 
         public override void Resize(ResizeEventArgs e)
         {
-            _width=e.Width;
-            // _button.Resize(ParentWindow.Size.X, ParentWindow.Size.Y);
+            RecalculateButtonPositions();
+            _button?.Resize(e.Width, e.Height);
         }
-        public override void Update(FrameEventArgs args) {
-            _button.Resize(ParentWindow.FramebufferSize.X, ParentWindow.FramebufferSize.Y);
+        public override void Update(FrameEventArgs args)
+        {
         }
 
 
@@ -41,10 +53,15 @@ namespace OpenGl.Screens
         {
             GL.Disable(EnableCap.DepthTest); // important for 2D UI
 
+            RedrawAllButtons();
+        }
+
+        void RedrawAllButtons()
+        {
             _button?.DrawButton(_triangleButton.X, _triangleButton.Y, _triangleButton.Width, _triangleButton.Height, new Vector4(1, 0, 0, 1), 20, 15, "Triangle");
             _button?.DrawButton(_squareButton.X, _squareButton.Y, _squareButton.Width, _squareButton.Height, new Vector4(0, 1, 0, 1), 20, 15, "Square");
             _button?.DrawButton(_cubeButton.X, _cubeButton.Y, _cubeButton.Width, _cubeButton.Height, new Vector4(0, 0, 1, 1), 20, 15, "Cube");
-            _button?.DrawButton(_textureButton.X, _textureButton.Y, _textureButton.Width, _textureButton.Height, new Vector4(0, 0, 1, 1), 20, 15, "Textured");
+            _button?.DrawButton(_textureButton.X, _textureButton.Y, _textureButton.Width, _textureButton.Height, new Vector4(0.59f, 0.29f, 0.0f, 1f), 20, 15, "Textured");
         }
 
         public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)

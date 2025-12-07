@@ -46,6 +46,11 @@ namespace OpenGl.Text
             _font = family.CreateFont(32); // 16 px size
         }
 
+        public void Resize(int width, int height)
+        {
+            _projection = Matrix4.CreateOrthographicOffCenter(0, width, 0, height, -1, 1);
+        }
+
         public void DrawString(string text, float centerX, float centerY)
         {
             int tex = CreateTextTexture(text, _font, out int w, out int h);

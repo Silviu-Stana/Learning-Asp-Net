@@ -31,7 +31,7 @@ public class ButtonRenderer
         GL.BindVertexArray(0);
 
         _projection = Matrix4.CreateOrthographicOffCenter(0, _framebufferWidth, 0, _framebufferHeight, -1, 1);
-        
+
         Resize(windowWidth, windowHeight);
     }
     
@@ -42,7 +42,8 @@ public class ButtonRenderer
 
         GL.Viewport(0, 0, framebufferWidth, framebufferHeight);
         _projection = Matrix4.CreateOrthographicOffCenter(0, framebufferWidth, 0, framebufferHeight, -1, 1);
-        textDrawer.DrawString(_text, _x + framebufferWidth / 2, _y + framebufferHeight / 2);
+
+        textDrawer.Resize(framebufferWidth, framebufferHeight);
     }
     
     /// <summary>
