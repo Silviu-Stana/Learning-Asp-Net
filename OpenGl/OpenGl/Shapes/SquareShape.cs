@@ -14,10 +14,14 @@ namespace OpenGl.Shapes
         {
             float[] vertices =
             {
-                -0.8f,  0.8f,
-                -0.2f,  0.8f,
-                -0.8f,  0.2f,
-                -0.2f,  0.2f
+                // Top-Left
+                -0.3f,  0.3f,
+                // Top-Right
+                 0.3f,  0.3f,
+                // Bottom-Left
+                -0.3f, -0.3f,
+                // Bottom-Right
+                 0.3f, -0.3f
             };
 
             _vao = GL.GenVertexArray();
@@ -37,15 +41,11 @@ namespace OpenGl.Shapes
         {
             float time = (float)GLFW.GetTime();
 
-            // Rotate around X-axis
-            Matrix4 rotation =
-                Matrix4.CreateTranslation(0.5f, -0.5f, 0f) *
-                Matrix4.CreateRotationX(time) *
-                Matrix4.CreateTranslation(-0.5f, 0.5f, 0f);
+            Matrix4 transform = Matrix4.CreateRotationX(time);
 
             GL.UseProgram(_shader);
             int loc = GL.GetUniformLocation(_shader, "uTransform");
-            GL.UniformMatrix4(loc, false, ref rotation);
+            GL.UniformMatrix4(loc, false, ref transform);
 
             GL.BindVertexArray(_vao);
             GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
