@@ -1,32 +1,32 @@
-﻿using OpenGl.Screens;
+﻿using OpenGl;
+using OpenGl.Screens;
 using OpenGl.Shapes;
-using OpenGl.Windows;
 using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
-public class SquareScreen : Screen
+public class TriangleScreen : Screen
 {
-    private SquareShape? _square;
+    private TriangleShape? _triangle;
     private float AspectRatio;
 
     public override void Load(int width, int height)
     {
         GL.ClearColor(Color4.Black);
 
-        _square = new SquareShape();
-        _square?.Load();
+        _triangle = new TriangleShape();
+        _triangle?.Load();
     }
 
     public override void Render(FrameEventArgs args)
     {
-        _square?.Render();
+        _triangle?.Render();
     }
 
     public override void Dispose()
     {
         // Crucial: Clean up the cube's GPU resources when we leave this screen
-        _square?.Unload();
+        _triangle?.Unload();
         GL.Disable(EnableCap.DepthTest); // Disable 3D specific settings
         base.Dispose();
     }
@@ -52,4 +52,8 @@ public class SquareScreen : Screen
     {
         //throw new NotImplementedException();
     }
+
+
+
+    
 }

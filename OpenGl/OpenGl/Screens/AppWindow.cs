@@ -2,9 +2,8 @@
 using OpenTK.Windowing.Common;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL;
-using OpenGl.Screens;
 
-namespace OpenGl.Windows
+namespace OpenGl.Screens
 {
     public class AppWindow(GameWindowSettings g, NativeWindowSettings n) : GameWindow(g, n)
     {
@@ -58,8 +57,7 @@ namespace OpenGl.Windows
             base.OnMouseDown(e);
 
             // Flip Y for screen coordinates (0,0 bottom-left)
-            Vector2 mouse = new Vector2(MousePosition.X * (Size.X / FramebufferSize.X),
-                            (Size.Y - MousePosition.Y) * (Size.Y / FramebufferSize.Y));
+            Vector2 mouse = new Vector2(MousePosition.X, Size.Y - MousePosition.Y);
 
             _currentScreen?.MouseDown(e, mouse);
         }

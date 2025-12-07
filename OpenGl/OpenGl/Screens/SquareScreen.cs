@@ -1,51 +1,36 @@
 ﻿using OpenGl;
 using OpenGl.Screens;
-using OpenGl.Windows;
+using OpenGl.Shapes;
 using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
 
-public class CubeScreen : Screen
+public class SquareScreen : Screen
 {
-    private Cube? _cube;
-    private float AspectRatio;
+    private SquareShape? _square;
 
     public override void Load(int width, int height)
     {
         GL.ClearColor(Color4.Black);
-        GL.Enable(EnableCap.DepthTest);
 
-        _cube = new Cube();
-        _cube.Load(width, height);
+        _square = new SquareShape();
+        _square?.Load();
     }
 
     public override void Render(FrameEventArgs args)
     {
-        _cube?.Render();
-    }
-
-    public override void Resize(ResizeEventArgs e)
-    {
-        AspectRatio = (float)e.Width / e.Height;
-        _cube?.Resize(e.Width, e.Height);
+        _square?.Render();
     }
 
     public override void Dispose()
     {
         // Crucial: Clean up the cube's GPU resources when we leave this screen
-        _cube?.Unload();
+        _square?.Unload();
         GL.Disable(EnableCap.DepthTest); // Disable 3D specific settings
         base.Dispose();
     }
 
-    public override void Update(FrameEventArgs args)
-    {
-        // Update logic for the cube (e.g., rotation)
-        _cube?.Update((float)args.Time);
-    }
-
-    public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
+    public override void MouseDown(MouseButtonEventArgs e, Vector2 mousePosition)
     {
         // A simple way to return to the main menu (e.g., click anywhere)
         // A better way is to render a "Back" button!
@@ -54,5 +39,14 @@ public class CubeScreen : Screen
             // Swap back to the MainMenuScreen
             ParentWindow.LoadScreen(new MainMenuScreen());
         }
+    }
+
+    public override void Resize(ResizeEventArgs e)
+    {
+    }
+
+    public override void Update(FrameEventArgs args)
+    {
+        //throw new NotImplementedException();
     }
 }

@@ -10,6 +10,8 @@ public class ButtonRenderer
     private Shader _shader;
     private Matrix4 _projection;
     public TextDrawer textDrawer;
+    private int _framebufferWidth;
+    private int _framebufferHeight;
     public ButtonRenderer(int windowWidth, int windowHeight)
     {
         _shader = new Shader("Assets/Shaders/button.vert", "Assets/Shaders/button.frag");
@@ -28,8 +30,19 @@ public class ButtonRenderer
         GL.BindVertexArray(0);
 
         _projection = Matrix4.CreateOrthographicOffCenter(0, windowWidth, 0, windowHeight, -1, 1);
+        
+        Resize(windowWidth, windowHeight);
     }
+    
+    public void Resize(int framebufferWidth, int framebufferHeight)
+    {
+        _framebufferWidth = framebufferWidth;
+        _framebufferHeight = framebufferHeight;
 
+        GL.Viewport(0, 0, framebufferWidth, framebufferHeight);
+        _projection = Matrix4.CreateOrthographicOffCenter(0, framebufferWidth, 0, framebufferHeight, -1, 1);
+    }
+    
     /// <summary>
     /// Draw a colored rectangle with optional rounded corners
     /// </summary>

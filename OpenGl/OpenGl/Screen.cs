@@ -1,8 +1,8 @@
-﻿using OpenGl.Windows;
+﻿using OpenGl.Screens;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
-namespace OpenGl.Screens
+namespace OpenGl
 {
     public abstract class Screen : IScreen
     {

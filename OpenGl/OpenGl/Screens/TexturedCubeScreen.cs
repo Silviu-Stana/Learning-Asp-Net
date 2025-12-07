@@ -1,6 +1,5 @@
 ﻿using OpenGl;
 using OpenGl.Screens;
-using OpenGl.Windows;
 using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
