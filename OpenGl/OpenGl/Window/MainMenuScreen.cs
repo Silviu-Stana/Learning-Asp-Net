@@ -22,12 +22,7 @@ namespace OpenGl.Windows
         private RectangleF textureButton = new RectangleF(300, 450, 200, 50);
 
         private ButtonRenderer? _button;
-        public override void Load(int width, int height)
-        {
-            var framebufferWidth = ParentWindow.Size.X;  // Or ParentWindow.FramebufferSize.X if available
-            var framebufferHeight = ParentWindow.Size.Y; // Or ParentWindow.FramebufferSize.Y
-            _button = new ButtonRenderer(framebufferWidth, framebufferHeight);
-        }
+        public override void Load(int width, int height) => _button = new ButtonRenderer(width, height);
 
         public override void Resize(ResizeEventArgs e){}
         public override void Update(FrameEventArgs args) { }

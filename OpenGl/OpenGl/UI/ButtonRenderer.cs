@@ -35,6 +35,7 @@ public class ButtonRenderer
     /// </summary>
     public void DrawButton(float x, float y, float width, float height, Vector4 color, float cornerRadius = 0, int cornerSegments = 8, string text="Triangle")
     {
+
         var vertices = GenerateButtonVertices(x, y, width, height, cornerRadius, cornerSegments);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.DynamicDraw);
