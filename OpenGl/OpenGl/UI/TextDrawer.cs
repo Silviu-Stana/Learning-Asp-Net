@@ -18,7 +18,7 @@ namespace OpenGl.Text
 
         public TextDrawer(int windowWidth, int windowHeight)
         {
-            _shader = new Shader("text.vert", "text.frag");
+            _shader = new Shader("Assets/Shaders/text.vert", "Assets/Shaders/text.frag");
 
             _vao = GL.GenVertexArray();
             _vbo = GL.GenBuffer();
@@ -42,7 +42,7 @@ namespace OpenGl.Text
 
             // --- Load the font once ---
             var collection = new FontCollection();
-            FontFamily family = collection.Add("Fonts/Arial.ttf"); // Make sure the path is correct
+            FontFamily family = collection.Add("Assets/Fonts/Arial.ttf"); // Make sure the path is correct
             _font = family.CreateFont(32); // 16 px size
         }
 

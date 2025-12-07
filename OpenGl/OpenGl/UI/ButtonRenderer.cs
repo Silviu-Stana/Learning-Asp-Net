@@ -12,7 +12,7 @@ public class ButtonRenderer
     public TextDrawer textDrawer;
     public ButtonRenderer(int windowWidth, int windowHeight)
     {
-        _shader = new Shader("button.vert", "button.frag");
+        _shader = new Shader("Assets/Shaders/button.vert", "Assets/Shaders/button.frag");
         textDrawer = new(windowWidth, windowHeight);
 
         // Simple VAO/VBO for dynamic rectangles
