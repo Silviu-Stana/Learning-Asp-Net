@@ -3,6 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenGl.Text;
+using SixLabors.Fonts;
 
 namespace OpenGl.Windows
 {
@@ -12,53 +13,30 @@ namespace OpenGl.Windows
         public float XAdvance;            // How far to move cursor after drawing
     }
 
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class MainMenuScreen : Screen
     {
         // Button rectangles: x, y, width, height
         private RectangleF triangleButton = new RectangleF(300, 150, 200, 50);
         private RectangleF squareButton = new RectangleF(300, 250, 200, 50);
         private RectangleF cubeButton = new RectangleF(300, 350, 200, 50);
+        private RectangleF textureButton = new RectangleF(300, 450, 200, 50);
 
-        // Define the radius for the rounded corners (e.g., 10 pixels)
-        private const float CornerRadius = 20.0f;
-        // Define the number of line segments to approximate the curve (e.g., 8-16)
-        private const int CornerSegments = 15;
+        private ButtonRenderer? _button;
+        public override void Load(int width, int height) => _button = new ButtonRenderer(width, height);
 
-
-        private TextDrawer textDrawer= new();
-
-        public override void Load(int width, int height)
-        {
-
-        }
-
-        public override void Resize(ResizeEventArgs e)
-        {
-
-        }
-
+        public override void Resize(ResizeEventArgs e){}
         public override void Update(FrameEventArgs args) { }
 
+        
         public override void Render(FrameEventArgs args)
         {
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Disable(EnableCap.DepthTest); // important for 2D UI
 
-            GL.UseProgram(0);     // Ensure no shader is active
-            GL.BindVertexArray(0); // Ensure no VAO is bound
-
-            // 1. Set up Orthographic Projection for 2D UI
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            GL.Ortho(0, ParentWindow.Size.X, 0, ParentWindow.Size.Y, -1, 1);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadIdentity();
-
-            DrawButton(triangleButton, Color4.Red, "Triangle");
-            DrawButton(squareButton, Color4.Green, "Square");
-            DrawButton(cubeButton, Color4.Blue, "Cube");
-
+            _button?.DrawButton(triangleButton.X, triangleButton.Y, triangleButton.Width, triangleButton.Height, new Vector4(1, 0, 0, 1), 20, 15, "Triangle");
+            _button?.DrawButton(squareButton.X, squareButton.Y, squareButton.Width, squareButton.Height, new Vector4(0, 1, 0, 1), 20, 15, "Square");
+            _button?.DrawButton(cubeButton.X, cubeButton.Y, cubeButton.Width, cubeButton.Height, new Vector4(0, 0, 1, 1), 20, 15, "Cube");
+            _button?.DrawButton(textureButton.X, textureButton.Y, textureButton.Width, textureButton.Height, new Vector4(0, 0, 1, 1), 20, 15, "Textured");
         }
 
         public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
@@ -66,89 +44,9 @@ namespace OpenGl.Windows
             if (triangleButton.Contains(mouse)) ParentWindow.LoadScreen(new TriangleScreen());
             else if (squareButton.Contains(mouse)) ParentWindow.LoadScreen(new SquareScreen());
             else if (cubeButton.Contains(mouse)) ParentWindow.LoadScreen(new CubeScreen());
+            else if (textureButton.Contains(mouse)) ParentWindow.LoadScreen(new TexturedCubeScreen());
         }
 
-        private void DrawButton(RectangleF rect, Color4 color, string text)
-        {
-            float x = rect.X;
-            float y = rect.Y;
-            float w = rect.Width;
-            float h = rect.Height;
-            float r = CornerRadius; // Shorthand for radius
-
-            GL.Color4(color);
-            GL.Begin(PrimitiveType.Quads);
-            {
-                // 1. Draw the central rectangle (excludes the 4 corners)
-                GL.Vertex2(x + r, y);
-                GL.Vertex2(x + w - r, y);
-                GL.Vertex2(x + w - r, y + h);
-                GL.Vertex2(x + r, y + h);
-
-                // 2. Draw the side strips (fills the gaps left by excluding the corners)
-
-                // Left strip
-                GL.Vertex2(x, y + r);
-                GL.Vertex2(x + r, y + r);
-                GL.Vertex2(x + r, y + h - r);
-                GL.Vertex2(x, y + h - r);
-
-                // Right strip
-                GL.Vertex2(x + w - r, y + r);
-                GL.Vertex2(x + w, y + r);
-                GL.Vertex2(x + w, y + h - r);
-                GL.Vertex2(x + w - r, y + h - r);
-            }
-            GL.End();
-
-            // 3. Draw the four rounded corners using polygons (GL.Begin(PrimitiveType.TriangleFan))
-
-            // Bottom-Left Corner (Center: x + r, y + r. Angle: 180 to 270 degrees)
-            DrawArc(x + r, y + r, r, 180, 270, CornerSegments);
-
-            // Bottom-Right Corner (Center: x + w - r, y + r. Angle: 270 to 360/0 degrees)
-            DrawArc(x + w - r, y + r, r, 270, 360, CornerSegments);
-
-            // Top-Right Corner (Center: x + w - r, y + h - r. Angle: 0 to 90 degrees)
-            DrawArc(x + w - r, y + h - r, r, 0, 90, CornerSegments);
-
-            // Top-Left Corner (Center: x + r, y + h - r. Angle: 90 to 180 degrees)
-            DrawArc(x + r, y + h - r, r, 90, 180, CornerSegments);
-
-
-            float textX = x + (w / 2);
-            float textY = y + (h / 2); // Center of the button in bottom-up coordinates
-
-
-            textDrawer.DrawString(text, textX, textY);
-        }
-
-
-        /// <summary>
-        /// Draws a filled arc (sector) using GL_TRIANGLE_FAN.
-        /// </summary>
-        private void DrawArc(float centerX, float centerY, float radius, float startAngleDegrees, float endAngleDegrees, int segments)
-        {
-            // The arc is drawn as a triangle fan originating from the center.
-            GL.Begin(PrimitiveType.TriangleFan);
-            {
-                GL.Vertex2(centerX, centerY); // Center point
-
-                float angleStep = (endAngleDegrees - startAngleDegrees) / segments;
-
-                for (int i = 0; i <= segments; i++)
-                {
-                    float angleDeg = startAngleDegrees + i * angleStep;
-                    float angleRad = angleDeg * (float)Math.PI / 180.0f;
-
-                    float x = centerX + radius * (float)Math.Cos(angleRad);
-                    float y = centerY + radius * (float)Math.Sin(angleRad);
-
-                    GL.Vertex2(x, y);
-                }
-            }
-            GL.End();
-        }
 
         public struct RectangleF
         {
@@ -159,8 +57,8 @@ namespace OpenGl.Windows
 
 
 
-        
 
-       
+
+
     }
 }
