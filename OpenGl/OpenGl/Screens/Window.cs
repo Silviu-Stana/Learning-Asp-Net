@@ -57,10 +57,17 @@ namespace OpenGl.Screens
             base.OnMouseDown(e);
 
             // Flip Y for screen coordinates (0,0 bottom-left)
-            float mouseX = MousePosition.X;
-            float mouseY = ClientSize.Y - MousePosition.Y;
+            // float mouseX = MousePosition.X;
+            // float mouseY = ClientSize.Y - MousePosition.Y;
+            //
+            // Vector2 mouse = new Vector2(mouseX, mouseY);
+            float scaleX = (float)FramebufferSize.X / ClientSize.X;
+            float scaleY = (float)FramebufferSize.Y / ClientSize.Y;
 
-            Vector2 mouse = new Vector2(mouseX, mouseY);
+            Vector2 mouse = new Vector2(
+                MousePosition.X * scaleX,
+                (ClientSize.Y - MousePosition.Y) * scaleY
+            );
             Console.WriteLine(mouse);
             
             _currentScreen?.MouseDown(e, mouse);
@@ -69,8 +76,11 @@ namespace OpenGl.Screens
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
+            
             GL.Viewport(0, 0, FramebufferSize.X, FramebufferSize.Y);
-            _currentScreen?.Resize(e);
+
+            _currentScreen?.Resize(new ResizeEventArgs(FramebufferSize.X, FramebufferSize.Y));
+
         }
 
         protected override void OnUnload()
