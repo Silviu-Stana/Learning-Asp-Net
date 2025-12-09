@@ -13,6 +13,8 @@ namespace OpenGl
         public abstract void Update(FrameEventArgs args);
         public abstract void Render(FrameEventArgs args);
         public abstract void MouseDown(MouseButtonEventArgs e, Vector2 mousePosition);
+        public abstract void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition);
+        public virtual void MouseMove(MouseMoveEventArgs e, Vector2 mousePosition) { }
         public abstract void Resize(ResizeEventArgs e);
 
         // Default Dispose implementation

@@ -5,16 +5,16 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace OpenGl.Screens;
 
-public class CubeScreen : Screen
+public class TransparentCubeScreen : Screen
 {
-    private Cube? _cube;
+    private TransparentCube? _cube;
 
     public override void Load(int width, int height)
     {
         GL.ClearColor(Color4.Black);
         GL.Enable(EnableCap.DepthTest);
 
-        _cube = new Cube();
+        _cube = new TransparentCube();
         _cube.Load(width, height);
     }
 
@@ -44,7 +44,7 @@ public class CubeScreen : Screen
 
     public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
     {
-        if (e.Button == MouseButton.Left) ParentWindow.LoadScreen(new MainMenuScreen());
+        if (e.Button == MouseButton.Right) ParentWindow.LoadScreen(new MainMenuScreen());
     }
 
     public override void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition)

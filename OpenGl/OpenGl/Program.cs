@@ -11,12 +11,13 @@ namespace OpenGl
         {
             var nativeSettings = new NativeWindowSettings
             {
-                ClientSize = new Vector2i(800, 600),
+                ClientSize = new Vector2i(800, 1000),
                 Title = "Main Menu",
                 // Compatibility: enables GL.Begin/GL.End functions
                 API = ContextAPI.OpenGL,
                 Profile = ContextProfile.Core,
-                APIVersion = new Version(3, 3)
+                APIVersion = new Version(3, 3),
+                NumberOfSamples = 8
             };
 
             var gameSettings = new GameWindowSettings{ UpdateFrequency = 60.0};

@@ -13,6 +13,8 @@ namespace OpenGl.Screens
         void Update(FrameEventArgs args);
         void Render(FrameEventArgs args);
         void MouseDown(MouseButtonEventArgs e, Vector2 mousePosition);
+        void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition);
+        void MouseMove(MouseMoveEventArgs e, Vector2 mousePosition);
         void Resize(ResizeEventArgs e);
     }
 }

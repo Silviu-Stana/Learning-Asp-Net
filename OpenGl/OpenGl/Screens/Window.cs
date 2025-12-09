@@ -2,6 +2,7 @@
 using OpenTK.Windowing.Common;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Platform.Windows;
 
 namespace OpenGl.Screens
 {
@@ -56,11 +57,30 @@ namespace OpenGl.Screens
         {
             base.OnMouseDown(e);
 
+            Vector2 mouse = GetMousePosition();
+
+            Console.WriteLine(mouse);
+            
+            _currentScreen?.MouseDown(e, mouse);
+        }
+
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnMouseUp(e);
+
+            _currentScreen?.MouseUp(e, GetMousePosition());
+        }
+
+        protected override void OnMouseMove(MouseMoveEventArgs e)
+        {
+            base.OnMouseMove(e);
+
+            _currentScreen?.MouseMove(e, GetMousePosition());
+        }
+
+        Vector2 GetMousePosition()
+        {
             // Flip Y for screen coordinates (0,0 bottom-left)
-            // float mouseX = MousePosition.X;
-            // float mouseY = ClientSize.Y - MousePosition.Y;
-            //
-            // Vector2 mouse = new Vector2(mouseX, mouseY);
             float scaleX = (float)FramebufferSize.X / ClientSize.X;
             float scaleY = (float)FramebufferSize.Y / ClientSize.Y;
 
@@ -68,9 +88,8 @@ namespace OpenGl.Screens
                 MousePosition.X * scaleX,
                 (ClientSize.Y - MousePosition.Y) * scaleY
             );
-            Console.WriteLine(mouse);
-            
-            _currentScreen?.MouseDown(e, mouse);
+
+            return mouse;
         }
 
         protected override void OnResize(ResizeEventArgs e)
