@@ -15,6 +15,7 @@ namespace OpenGl.Screens
         private RectangleF _textureButton = new RectangleF(300, 550, 300, 70);
         private RectangleF _transparentButton = new RectangleF(300, 700, 300, 70);
         private RectangleF _pyramidButton = new RectangleF(300, 850, 300, 70);
+        private RectangleF _starButton = new RectangleF(300, 1000, 300, 70);
 
         private ButtonRenderer? _button;
 
@@ -33,6 +34,7 @@ namespace OpenGl.Screens
             _textureButton.X = ParentWindow.FramebufferSize.X / 2- _textureButton.Width/2;
             _transparentButton.X = ParentWindow.FramebufferSize.X / 2 - _transparentButton.Width / 2;
             _pyramidButton.X = ParentWindow.FramebufferSize.X / 2 - _pyramidButton.Width / 2;
+            _starButton.X = ParentWindow.FramebufferSize.X / 2 - _starButton.Width / 2;
         }
 
         public override void Resize(ResizeEventArgs e)
@@ -61,6 +63,7 @@ namespace OpenGl.Screens
             _button?.DrawButton(_textureButton.X, _textureButton.Y, _textureButton.Width, _textureButton.Height, new Vector4(0.59f, 0.29f, 0.0f, 1f), 20, 15, "Textured");
             _button?.DrawButton(_transparentButton.X, _transparentButton.Y, _transparentButton.Width, _transparentButton.Height, new Vector4(0.204f, 0.835f, 0.878f, 1f), 20, 15, "Transparent");
             _button?.DrawButton(_pyramidButton.X, _pyramidButton.Y, _pyramidButton.Width, _pyramidButton.Height, new Vector4(0.867f, 0.204f, 0.878f, 1f), 20, 15, "Pyramid");
+            _button?.DrawButton(_starButton.X, _starButton.Y, _starButton.Width, _starButton.Height, new Vector4(0.855f, 0.647f, 0.125f, 1f), 20, 15, "Star");
         }
 
         public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
@@ -71,6 +74,7 @@ namespace OpenGl.Screens
             else if (_textureButton.Contains(mouse)) ParentWindow.LoadScreen(new TexturedCubeScreen());
             else if (_transparentButton.Contains(mouse)) ParentWindow.LoadScreen(new TransparentCubeScreen());
             else if (_pyramidButton.Contains(mouse)) ParentWindow.LoadScreen(new PyramidScreen());
+            else if (_starButton.Contains(mouse)) ParentWindow.LoadScreen(new StarScreen());
         }
 
         public override void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition)

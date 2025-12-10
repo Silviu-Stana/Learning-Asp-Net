@@ -11,7 +11,7 @@ namespace OpenGl
         {
             var nativeSettings = new NativeWindowSettings
             {
-                ClientSize = new Vector2i(800, 1000),
+                ClientSize = new Vector2i(800, 1100),
                 Title = "Main Menu",
                 // Compatibility: enables GL.Begin/GL.End functions
                 API = ContextAPI.OpenGL,
