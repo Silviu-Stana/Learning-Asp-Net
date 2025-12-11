@@ -16,6 +16,7 @@ namespace OpenGl.Screens
         private RectangleF _transparentButton = new RectangleF(300, 700, 300, 70);
         private RectangleF _pyramidButton = new RectangleF(300, 850, 300, 70);
         private RectangleF _starButton = new RectangleF(300, 1000, 300, 70);
+        private RectangleF _shadowButton = new RectangleF(300, 1150, 300, 70);
 
         private ButtonRenderer? _button;
 
@@ -35,6 +36,7 @@ namespace OpenGl.Screens
             _transparentButton.X = ParentWindow.FramebufferSize.X / 2 - _transparentButton.Width / 2;
             _pyramidButton.X = ParentWindow.FramebufferSize.X / 2 - _pyramidButton.Width / 2;
             _starButton.X = ParentWindow.FramebufferSize.X / 2 - _starButton.Width / 2;
+            _shadowButton.X = ParentWindow.FramebufferSize.X / 2 - _shadowButton.Width / 2;
         }
 
         public override void Resize(ResizeEventArgs e)
@@ -64,6 +66,7 @@ namespace OpenGl.Screens
             _button?.DrawButton(_transparentButton.X, _transparentButton.Y, _transparentButton.Width, _transparentButton.Height, new Vector4(0.204f, 0.835f, 0.878f, 1f), 20, 15, "Transparent");
             _button?.DrawButton(_pyramidButton.X, _pyramidButton.Y, _pyramidButton.Width, _pyramidButton.Height, new Vector4(0.867f, 0.204f, 0.878f, 1f), 20, 15, "Pyramid");
             _button?.DrawButton(_starButton.X, _starButton.Y, _starButton.Width, _starButton.Height, new Vector4(0.855f, 0.647f, 0.125f, 1f), 20, 15, "Star");
+            _button?.DrawButton(_shadowButton.X, _shadowButton.Y, _shadowButton.Width, _shadowButton.Height, new Vector4(0.2f, 0.2f, 0.2f, 1f), 20, 15, "Shadows");
         }
 
         public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
@@ -75,6 +78,7 @@ namespace OpenGl.Screens
             else if (_transparentButton.Contains(mouse)) ParentWindow.LoadScreen(new TransparentCubeScreen());
             else if (_pyramidButton.Contains(mouse)) ParentWindow.LoadScreen(new PyramidScreen());
             else if (_starButton.Contains(mouse)) ParentWindow.LoadScreen(new StarScreen());
+            else if (_shadowButton.Contains(mouse)) ParentWindow.LoadScreen(new ShadowScreen());
         }
 
         public override void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition)
