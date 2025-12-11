@@ -1,13 +1,14 @@
 ﻿using Models.Interfaces;
 using Models.Models;
 using Models.DTO;
+using Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Services.Services
 {
-    public class StockService : IStockService
+    public class StockService(StockMarketDbContext db) : IStockService
     {
-        private readonly List<BuyOrder> _buyOrders = [];
-        private readonly List<SellOrder> _sellOrders = [];
+        private readonly StockMarketDbContext _db = db;
 
         public async Task<BuyOrderResponse> CreateBuyOrder(BuyOrderRequest? request)
         {
@@ -17,26 +18,19 @@ namespace Services.Services
             if (request.Price <= 0 || request.Price > 100000) throw new ArgumentException("Price must be a positive number, below 100000", nameof(request.Price));
             if (string.IsNullOrWhiteSpace(request.StockSymbol)) throw new ArgumentException("Stock symbol cannot be empty.", nameof(request.StockSymbol));
 
-            await Task.Yield();
-
             var buyOrder = request.ConvertToBuyOrder();
-            _buyOrders.Add(buyOrder);
+            _db.BuyOrders.Add(buyOrder);
+            await _db.SaveChangesAsync();
+
             var response = BuyOrderResponse.ConvertFrom(buyOrder);
 
             return response;
         }
         public async Task<List<BuyOrderResponse>> GetBuyOrders()
         {
-            List<BuyOrderResponse> buyOrders = [];
+            List<BuyOrder> buyOrders = await _db.BuyOrders.ToListAsync();
 
-            await Task.Yield();
-
-            foreach (var order in _buyOrders)
-            {
-                buyOrders.Add(BuyOrderResponse.ConvertFrom(order));
-            }
-
-            return buyOrders;
+            return buyOrders.Select(BuyOrderResponse.ConvertFrom).ToList();
         }
 
         public async Task<SellOrderResponse> CreateSellOrder(SellOrderRequest? request)
@@ -47,29 +41,20 @@ namespace Services.Services
             if (request.Price <= 0 || request.Price > 100000) throw new ArgumentException("Price must be a positive number, below 100000", nameof(request.Price));
             if (string.IsNullOrWhiteSpace(request.StockSymbol)) throw new ArgumentException("Stock symbol cannot be empty.", nameof(request.StockSymbol));
 
-            await Task.Yield();
-
             var sellOrder = request.ConvertToSellOrder();
-            _sellOrders.Add(sellOrder);
-            var response = SellOrderResponse.ConvertFrom(sellOrder);
+            _db.SellOrders.Add(sellOrder);
+            await _db.SaveChangesAsync();
 
-            return response;
+            return SellOrderResponse.ConvertFrom(sellOrder);
         }
 
 
 
         public async Task<List<SellOrderResponse>> GetSellOrders()
         {
-            List<SellOrderResponse> sellOrders = [];
+            List<SellOrder> sellOrders = await _db.SellOrders.ToListAsync();
 
-            await Task.Yield();
-
-            foreach (var order in _sellOrders)
-            {
-                sellOrders.Add(SellOrderResponse.ConvertFrom(order));
-            }
-
-            return sellOrders;
+            return sellOrders.Select(SellOrderResponse.ConvertFrom).ToList();
         }
     }
 }

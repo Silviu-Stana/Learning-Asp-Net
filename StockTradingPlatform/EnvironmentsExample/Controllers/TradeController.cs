@@ -80,5 +80,18 @@ namespace Core.Controllers
 
             return View(orders);
         }
+
+        //invokes "Trade/OrdersPDF" view and renders it as PDF file using 'Rotativa' package.
+        [HttpGet("/OrdersPDF")]
+        public async Task<IActionResult> OrdersPDF()
+        {
+            Orders orders = new()
+            {
+                BuyOrders = await _stockService.GetBuyOrders(),
+                SellOrders = await _stockService.GetSellOrders(),
+            };
+
+            return View(orders);
+        }
     }
 }
