@@ -44,7 +44,7 @@ public class CubeScreen : Screen
 
     public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
     {
-        if (e.Button == MouseButton.Right) ParentWindow.LoadScreen(new MainMenuScreen());
+        if (e.Button == MouseButton.Left) ParentWindow.LoadScreen(new MainMenuScreen());
     }
 
     public override void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition)

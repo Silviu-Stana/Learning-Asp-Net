@@ -66,7 +66,7 @@ public class PyramidScreen : Screen
             // Return to main menu
             ParentWindow.LoadScreen(new MainMenuScreen());
         }
-    }
+    }   
     public override void MouseUp(MouseButtonEventArgs e, Vector2 mouse)
     {
          _isDragging = false;

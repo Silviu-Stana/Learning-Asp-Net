@@ -33,7 +33,7 @@ public class SquareScreen : Screen
 
     public override void MouseDown(MouseButtonEventArgs e, Vector2 mousePosition)
     {
-        if (e.Button == MouseButton.Right) ParentWindow.LoadScreen(new MainMenuScreen());
+        if (e.Button == MouseButton.Left) ParentWindow.LoadScreen(new MainMenuScreen());
     }
 
     public override void Resize(ResizeEventArgs e){}
