@@ -1,0 +1,40 @@
+﻿@model Orders
+
+@{ViewBag.Title = "Orders";}
+
+<table class="table w-100 mt">
+    <thead>
+        <tr>
+            <th>Date and Time</th>
+            <th>Stock</th>
+            <th>Order Type</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Trade Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (BuyOrderResponse o in Model.BuyOrders)
+        {
+            <tr>
+                <td>@o.OrderDate</td>
+                <td>@o.StockName</td>
+                <td>Buy</td>
+                <td>@o.Quantity</td>
+                <td>$@o.Price</td>
+                <td>$@o.TradeAmount</td>
+            </tr>
+        }
+        @foreach (SellOrderResponse o in Model.SellOrders)
+        {
+            <tr>
+                <td>@o.OrderDate</td>
+                <td>@o.StockName</td>
+                <td>Sell</td>
+                <td>@o.Quantity</td>
+                <td>$@o.Price</td>
+                <td>$@o.TradeAmount</td>
+            </tr>
+        }
+    </tbody>
+</table>

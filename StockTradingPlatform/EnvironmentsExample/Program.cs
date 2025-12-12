@@ -27,6 +27,8 @@ if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
 
 app.Configuration["MyKey"] = "NewValue";
 
+Rotativa.AspNetCore.RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
+
 app.UseStaticFiles();
 app.UseRouting();
 app.MapControllers();

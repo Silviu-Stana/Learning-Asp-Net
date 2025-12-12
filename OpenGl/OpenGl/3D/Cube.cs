@@ -7,6 +7,9 @@ namespace OpenGl
 {
     public class Cube
     {
+        //VBO (Vertex Buffer Object) Stores raw vertex data on the GPU (position normals, texture coords, colors)
+        //EBO (Element Buffer Object) stores indices that tell the GPU which vertices to draw. This prevents duplicating vertices.
+        //VAO (Vertex Array Object) Knows which VBO/EBO is currently bound. What attributes are enabled.
         private int _vao, _vbo, _ebo;
         private int _shaderProgram;
 
@@ -57,8 +60,10 @@ namespace OpenGl
             _vbo = GL.GenBuffer();
             _ebo = GL.GenBuffer();
 
+            //All future VBO/EBO will be recorded inside this VAO.
             GL.BindVertexArray(_vao);
 
+            //Allocates GPU memory for the VBO and uploads the vertex array vertices.
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
@@ -75,7 +80,7 @@ namespace OpenGl
 
             _shaderProgram = CreateShaderProgram(VertexShaderSource, FragmentShaderSource);
 
-            // Simple camera setup
+            // Simple camera setup (View matrix is static unless you move the camera)
             _view = Matrix4.LookAt(new Vector3(2, 2, 3), Vector3.Zero, Vector3.UnitY);
             _projection = Matrix4.CreatePerspectiveFieldOfView(
                 MathHelper.DegreesToRadians(60f),
@@ -84,23 +89,18 @@ namespace OpenGl
                 100f
             );
 
-            // Initial camera setup (View matrix is static unless you move the camera)
-            _view = Matrix4.LookAt(new Vector3(2, 2, 3), Vector3.Zero, Vector3.UnitY);
-
             // Set initial projection
             Resize(windowWidth, windowHeight);
         }
 
-        //Handles animation Every frame.
+        //Animate Every frame.
         public void Update(float timeDelta)
         {
             // Accumulate time for animation
             _time += timeDelta;
 
-            // Calculate new rotation angles
-            // Use timeDelta (dTime) for frame-rate independent movement
-            _currentRotationY += 1.0f * timeDelta; // Rotate 1.0 radian per second around Y
-            _currentRotationX += 0.5f * timeDelta; // Rotate 0.5 radians per second around X
+            _currentRotationY += 1.0f * timeDelta; // Rotate camera 1.0 radian per second around Y
+            _currentRotationX += 0.5f * timeDelta; // Rotate camera 0.5 radians per second around X
         }
 
 

@@ -133,7 +133,7 @@ void main()
     float diff = max(dot(N, L), 0.0);
 
     // ambient (softens dark faces)
-    float ambient = 0.25;
+    float ambient = 0.3;
 
     vec3 result = color * (diff + ambient);
 
@@ -190,6 +190,7 @@ void main()
         {
             using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(path);
 
+
             // Flip vertically because OpenGL expects origin at bottom-left
             img.Mutate(x => x.Flip(FlipMode.Vertical));
 
@@ -205,10 +206,14 @@ void main()
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
+            //Highest quality filter. Linear interpolation between mip levels
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            //Use linear filtering when the texture gets bigger → smoother, less blocky.
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            //how textures behave when UV coordinates go outside the 0–1 range.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat); //repeat in X dir (S)
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat); //repeat in Y dir (T)
         }
 
         public void Render(float delta, Matrix4 view, Matrix4 projection)

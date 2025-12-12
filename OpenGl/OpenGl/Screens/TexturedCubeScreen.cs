@@ -47,16 +47,11 @@ public class TexturedCubeScreen : Screen
         _texturedCube?.Dispose();
     }
 
-    public override void Update(FrameEventArgs args)
-    {
-    }
+    public override void Update(FrameEventArgs args){}
+    public override void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition) { }
 
     public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
     {
         if (e.Button == MouseButton.Left) ParentWindow.LoadScreen(new MainMenuScreen());
-    }
-
-    public override void MouseUp(MouseButtonEventArgs e, Vector2 mousePosition)
-    {
     }
 }

@@ -1,3 +1,5 @@
+using Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Models.DTO;
 using Models.Interfaces;
 using Services.Services;
@@ -10,7 +12,7 @@ namespace Tests
 
         public StockServiceTests()
         {
-            _stockService = new StockService();
+            //_stockService = new StockService();
         }
 
         #region CreateBuyOrder

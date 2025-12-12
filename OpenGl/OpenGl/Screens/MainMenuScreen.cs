@@ -29,6 +29,7 @@ namespace OpenGl.Screens
 
         void RecalculateButtonPositions()
         {
+            //Put buttons in middle of Window, no matter how you scale it:
             _triangleButton.X = ParentWindow.FramebufferSize.X / 2 - _triangleButton.Width/2;
             _squareButton.X = ParentWindow.FramebufferSize.X / 2 - _squareButton.Width/2;
             _cubeButton.X = ParentWindow.FramebufferSize.X / 2 - _cubeButton.Width/2;

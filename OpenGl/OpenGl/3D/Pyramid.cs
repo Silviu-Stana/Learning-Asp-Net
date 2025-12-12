@@ -53,7 +53,7 @@ namespace OpenGl
 
             //Smooth lines: (fix aliasing)
             GL.Enable(EnableCap.LineSmooth);
-            GL.Enable(EnableCap.Multisample); // also enable multisampling in your context
+            GL.Enable(EnableCap.Multisample);
             GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
 
             _vao = GL.GenVertexArray();
@@ -97,10 +97,6 @@ namespace OpenGl
                 0.1f,
                 100f
             );
-        }
-
-        public void Update(float timeDelta)
-        {
         }
 
         public void Render()
@@ -151,28 +147,25 @@ namespace OpenGl
         // SHADERS
         // ------------------------------------------------------------
         private const string VertexShaderSource = @"
-
-#version 330 core
-layout(location = 0) in vec3 aPosition;
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
-void main()
-{
-gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
-}
-";
+        #version 330 core
+        layout(location = 0) in vec3 aPosition;
+        uniform mat4 uModel;
+        uniform mat4 uView;
+        uniform mat4 uProjection;
+        void main()
+        {
+        gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
+        }";
 
         private const string FragmentShaderSource = @"
-
-#version 330 core
-uniform vec4 uColor;
-out vec4 FragColor;
-void main()
-{
-FragColor = uColor;
-}
-";
+        #version 330 core
+        uniform vec4 uColor;
+        out vec4 FragColor;
+        void main()
+        {
+        FragColor = uColor;
+        }
+        ";
 
         private int CreateShaderProgram(string vs, string fs)
         {

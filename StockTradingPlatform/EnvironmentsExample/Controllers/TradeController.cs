@@ -3,6 +3,8 @@ using Models.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Models.DTO;
+using Rotativa.AspNetCore;
+using Rotativa.AspNetCore.Options;
 
 namespace Core.Controllers
 {
@@ -91,7 +93,11 @@ namespace Core.Controllers
                 SellOrders = await _stockService.GetSellOrders(),
             };
 
-            return View(orders);
+            return new ViewAsPdf("OrdersPDF", orders, ViewData)
+            {
+                PageMargins = new Margins() { Bottom = 20, Top = 20, Left = 20, Right = 20 },
+                PageOrientation = Orientation.Landscape
+            };
         }
     }
 }

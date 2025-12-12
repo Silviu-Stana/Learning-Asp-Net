@@ -131,29 +131,36 @@ void main()
 
             GL.BindVertexArray(_vao);
 
+            //Upload vertex data to VBO
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
 
+            //Upload index data to EBO
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
 
+            //Each vertex = 8 floats (3 pos + 3 normal + 2 UV).
             int stride = 8 * sizeof(float);
 
+            //Attribute 0 — Position, has 3 floats
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0); //starts at offset 0
 
+            //Attribute 1 — Normal
             GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float)); //starts at offset 3
 
             GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float)); //offset=6
 
+            //prevents accidental changes.
             GL.BindVertexArray(0);
         }
 
         private void LoadTexture(string path)
         {
             using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(path);
+
 
             // Flip vertically because OpenGL expects origin at bottom-left
             img.Mutate(x => x.Flip(FlipMode.Vertical));
@@ -165,15 +172,19 @@ void main()
             _texture = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, _texture);
 
-            GL.TexImage2D(TextureTarget.Texture2D,0,PixelInternalFormat.Rgba,img.Width,img.Height,0,PixelFormat.Rgba,PixelType.UnsignedByte,
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, img.Width, img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
                 pixelData);
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
+            //Highest quality filter. Linear interpolation between mip levels
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            //Use linear filtering when the texture gets bigger → smoother, less blocky.
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            //how textures behave when UV coordinates go outside the 0–1 range.
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat); //repeat in X dir (S)
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat); //repeat in Y dir (T)
         }
 
         public void Render(float delta, Matrix4 view, Matrix4 projection)

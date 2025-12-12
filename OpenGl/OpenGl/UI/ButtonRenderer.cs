@@ -1,7 +1,6 @@
 ﻿using OpenGl.Text;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using static System.Net.Mime.MediaTypeNames;
 
 public class ButtonRenderer
 {

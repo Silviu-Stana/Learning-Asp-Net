@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -28,7 +27,7 @@ namespace OpenGl
             List<float> vertices = new();
             List<uint> indices = new();
 
-            // Radii for outer + inner star tips
+            // Radius for outer + inner star tips
             float outerR = 0.5f;
             float innerR = 0.22f;
 

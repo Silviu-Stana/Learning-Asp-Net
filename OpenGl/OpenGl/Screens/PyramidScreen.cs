@@ -48,9 +48,6 @@ public class PyramidScreen : Screen
 
     public override void Update(FrameEventArgs args)
     {
-        // Update logic for the cube (e.g., rotation)
-        pyramid?.Update((float)args.Time);
-
     }
 
     public override void MouseDown(MouseButtonEventArgs e, Vector2 mouse)
