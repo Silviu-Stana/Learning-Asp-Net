@@ -19,12 +19,16 @@ builder.Services.AddDbContext<WebScraperDbContext>(options =>
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
+// Register HttpClientFactory
+builder.Services.AddHttpClient();
+
 // Register application services
-builder.Services.AddHttpClient<ImageDownloader>();
-builder.Services.AddScoped<ImageDownloader>();
+builder.Services.AddSingleton<ImageDownloader>();
 
 // Register default scraper (Olx)
-builder.Services.AddScoped<IScraper, OlxScraper>();
+builder.Services.AddTransient<OlxScraper>();
+builder.Services.AddTransient<StoriaScraper>();
+
 // Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
@@ -62,6 +66,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
 // Serve downloaded images from the Images folder
@@ -72,6 +81,8 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(imagesPath),
     RequestPath = "/Images"
 });
+
+app.UseRouting();
 
 app.UseAuthorization();
 

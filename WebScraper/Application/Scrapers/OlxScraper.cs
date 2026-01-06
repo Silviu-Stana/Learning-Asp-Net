@@ -2,28 +2,25 @@
 using Application.Services;
 using Domain.Entities;
 using HtmlAgilityPack;
-using System.Net.Http;
-using System.Linq;
 using System.Globalization;
 using System.Text.RegularExpressions;
-// Selenium removed: using HtmlAgilityPack + HttpClient instead
 
 namespace Application.Scrapers
 {
     public class OlxScraper : IScraper
     {
         private readonly ImageDownloader _imageDownloader;
-        private readonly IHttpClientFactory _httpFactory;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public OlxScraper(ImageDownloader imageDownloader, IHttpClientFactory httpFactory)
+        public OlxScraper(ImageDownloader imageDownloader, IHttpClientFactory httpClientFactory)
         {
             _imageDownloader = imageDownloader;
-            _httpFactory = httpFactory;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<Listing> ScrapeListingAsync(string url)
         {
-            var client = _httpFactory.CreateClient();
+            var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
             client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
 
@@ -40,11 +37,10 @@ namespace Application.Scrapers
             string? currency = null;
             if (!string.IsNullOrEmpty(priceText))
             {
-                var m = Regex.Match(priceText, @"(?<num>[0-9\s\.,]+)\s*(?<cur>[^0-9\s\.,]+)?");
+                var m = Regex.Match(priceText, "(?<num>[0-9\\s\\.,]+)\\s*(?<cur>[^0-9\\s\\.,]+)?");
                 if (m.Success)
                 {
-                    var num = m.Groups["num"].Value.Replace(" ", "").Replace('\u00A0', ' ');
-                    num = num.Replace(',', '.');
+                    var num = m.Groups["num"].Value.Replace(" ", "").Replace('\u00A0', ' ').Replace(',', '.');
                     if (decimal.TryParse(num, NumberStyles.Number, CultureInfo.InvariantCulture, out var p)) price = p;
                     currency = m.Groups["cur"].Value?.Trim();
                 }
@@ -52,21 +48,20 @@ namespace Application.Scrapers
 
             var description = document.DocumentNode.SelectSingleNode("//div[contains(@class,'css-19duwlz')]")?.InnerText.Trim();
 
+            var viewsNode = document.DocumentNode.SelectSingleNode("//span[@data-testid='ad-views-counter']")
+                          ?? document.DocumentNode.SelectSingleNode("//div[contains(@class, 'css-') and contains(., 'Vizualizări')]");
 
+            string views = viewsNode?.InnerText ?? "-"; // ex: "Vizualizări: 2960"
 
-
-            
-            
             var adId = document.DocumentNode.SelectSingleNode("//span[contains(@class,'css-ooacec')]")?.InnerText.Replace("ID: ", "").Trim();
             var sellerName = document.DocumentNode.SelectSingleNode("//h4[@data-testid='user-profile-user-name']")?.InnerText.Trim();
 
-            string city = document.DocumentNode.SelectSingleNode("//p[contains(@class,'css-1bzg5dq')]")?.InnerText ?? "Not found";
+            string city = document.DocumentNode.SelectSingleNode("//p[contains(@class,'css-1bzg5dq')]")?.InnerText ?? "-";
 
             // images
             var images = new List<Image>();
             try
             {
-                // Try a few selectors for images
                 var imageNodes = document.DocumentNode.SelectNodes("//img[@data-testid='swiper-image']")
                                  ?? document.DocumentNode.SelectNodes("//img[contains(@class,'css-8wsg1m')]")
                                  ?? document.DocumentNode.SelectNodes("//div[contains(@class,'css-gl6djm')]//img");
@@ -92,7 +87,7 @@ namespace Application.Scrapers
             }
             catch { }
 
-            var listing = new Listing
+            return new Listing
             {
                 Title = title,
                 Price = price,
@@ -107,14 +102,11 @@ namespace Application.Scrapers
                 ListingId = adId,
                 Images = images
             };
-
-            return listing;
         }
 
         public async Task<IEnumerable<string>> ExtractListingUrlsFromSearchAsync(string searchUrl, int maxResults = 10)
         {
-            // Use HttpClient + HtmlAgilityPack to load search page and extract first 10 listing hrefs
-            var client = _httpFactory.CreateClient();
+            var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
             client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
 
@@ -124,7 +116,6 @@ namespace Application.Scrapers
 
             var results = new List<string>();
 
-            // Prefer data-cy cards
             var cardNodes = doc.DocumentNode.SelectNodes("//div[@data-cy='l-card']")
                             ?? doc.DocumentNode.SelectNodes("//div[contains(@class,'css-1sw7q4x')]");
 
@@ -150,9 +141,6 @@ namespace Application.Scrapers
                 }
             }
 
-            // If we still don't have enough, try fetching additional pages by scrolling simulation is not possible with HAP,
-            // but OLX uses paged URLs — try appending page parameters or visiting subsequent result pages if pattern exists.
-            // For now, return up to maxResults from what we found.
             return results.Take(maxResults).ToList();
         }
 
@@ -174,7 +162,6 @@ namespace Application.Scrapers
                 }
                 catch
                 {
-                    // fallback: try regex
                     var m = Regex.Match(searchUrl, "/q-([^/]+)");
                     if (m.Success) return Uri.UnescapeDataString(m.Groups[1].Value);
                     return null;
