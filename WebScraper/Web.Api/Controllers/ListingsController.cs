@@ -21,6 +21,8 @@ namespace Web.Api.Controllers
 
         public record ScrapeRequest(string Url);
 
+        public record BulkScrapeResult(int Created, int Skipped, IEnumerable<object> Details);
+
         [HttpPost]
         public async Task<IActionResult> ScrapeAndSave([FromBody] ScrapeRequest request)
         {
@@ -72,6 +74,109 @@ namespace Web.Api.Controllers
             var listing = await _db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
             if (listing == null) return NotFound();
             return Ok(listing);
+        }
+
+        /// <summary>
+        /// Given a search page URL (e.g. https://www.olx.ro/oferte/q-KEYWORDS/),
+        /// extract the first 10 listing URLs and scrape & save them.
+        /// </summary>
+        [HttpPost("from-search")]
+        public async Task<IActionResult> ScrapeFromSearch([FromBody] ScrapeRequest request)
+        {
+            if (request is null || string.IsNullOrWhiteSpace(request.Url))
+                return BadRequest(new { error = "Url is required" });
+
+            List<object> details = new();
+            int created = 0, skipped = 0;
+
+            IEnumerable<string> listingUrls;
+            try
+            {
+                listingUrls = await _scraper.ExtractListingUrlsFromSearchAsync(request.Url);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to extract listing URLs", details = ex.Message });
+            }
+
+            foreach (var url in listingUrls.Take(10))
+            {
+                try
+                {
+                    var scraped = await _scraper.ScrapeListingAsync(url);
+                    if (scraped == null)
+                    {
+                        details.Add(new { url, status = "no-data" });
+                        continue;
+                    }
+
+                    var exists = await _db.Listings.Include(l => l.Images)
+                        .FirstOrDefaultAsync(l => l.OriginalUrl == scraped.OriginalUrl || (!string.IsNullOrEmpty(scraped.ListingId) && l.ListingId == scraped.ListingId));
+
+                    if (exists != null)
+                    {
+                        skipped++;
+                        details.Add(new { url, status = "skipped", reason = "exists", existingId = exists.Id });
+                        continue;
+                    }
+
+                    if (scraped.Images != null)
+                    {
+                        foreach (var img in scraped.Images)
+                        {
+                            img.Listing = null; // avoid cycles
+                        }
+                    }
+
+                    _db.Listings.Add(scraped);
+                    await _db.SaveChangesAsync();
+                    created++;
+                    details.Add(new { url, status = "created", id = scraped.Id });
+                }
+                catch (Exception ex)
+                {
+                    details.Add(new { url, status = "error", details = ex.Message });
+                }
+            }
+
+            return Ok(new BulkScrapeResult(created, skipped, details));
+        }
+
+        [HttpPost("extract-urls")]
+        public async Task<IActionResult> ExtractUrls([FromBody] ScrapeRequest request)
+        {
+            if (request is null || string.IsNullOrWhiteSpace(request.Url))
+                return BadRequest(new { error = "Url is required" });
+
+            IEnumerable<string> listingUrls;
+            try
+            {
+                listingUrls = await _scraper.ExtractListingUrlsFromSearchAsync(request.Url);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to extract listing URLs", details = ex.Message });
+            }
+
+            return Ok(listingUrls.Take(10));
+        }
+
+        [HttpPost("extract-keyword")]
+        public async Task<IActionResult> ExtractKeyword([FromBody] ScrapeRequest request)
+        {
+            if (request is null || string.IsNullOrWhiteSpace(request.Url))
+                return BadRequest(new { error = "Url is required" });
+
+            try
+            {
+                var kw = await _scraper.ExtractSearchKeywordFromUrlAsync(request.Url);
+                if (kw == null) return NotFound(new { message = "No search keyword found" });
+                return Ok(new { keyword = kw });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to extract keyword", details = ex.Message });
+            }
         }
     }
 }

@@ -13,7 +13,12 @@
         .image-box { position: relative; }
         .price-badge { position: absolute; right: 12px; top: 12px; background: linear-gradient(90deg,#ff6b6b,#ff8e53); color: #fff; padding: 8px 12px; border-radius: 999px; font-weight:700; box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
         .ad-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 6px; }
-        .ad-seller { font-size: 0.95rem; color: #6b7280; margin-bottom: 8px; }
+
+        .ad-seller {
+            font-size: 1.25rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
         .ad-desc { font-size: 1.02rem; color: #374151; max-height: 6.5rem; overflow: auto; }
         .list-group-item { font-size: 1.02rem; }
         .card-links a { margin-right: 2px; }
@@ -34,7 +39,7 @@
 </head>
 <body>
     <div class="py-4">
-        <h1>Scraped Listings</h1>
+        <h1 style=text-center>Scraped Listings</h1>
         <div class="search-bar mb-4" style="display:flex;align-items:center;justify-content:center;">
             <form id="scrapeForm" style="width:100%;max-width:1100px;">
                 <div style="display:flex;gap:8px;">
@@ -42,7 +47,22 @@
                            style="flex:1;padding:20px 24px;border-radius:999px;border:1px solid #e5e7eb;font-size:1.1rem;box-shadow:0 6px 18px rgba(16,24,40,0.04);" />
                     <button id="scrapeBtn" type="submit" class="btn btn-primary" style="padding:14px 22px;border-radius:999px;font-size:1.05rem;">Scrape</button>
                 </div>
+        <div id="urlSpinner" style="display:none;max-width:1100px;margin:6px auto 12px auto;text-align:center;">
+            <div class="spinner-border" role="status" style="width:3rem;height:3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div style="margin-top:6px;font-weight:600;">Loading listing links…</div>
+        </div>
             </form>
+        </div>
+        <div id="bulkProgress" class="mb-3" style="display:none;max-width:1200px;margin:0 auto;position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:1050;padding:12px 18px;background:rgba(255,255,255,0.98);border-radius:18px;box-shadow:0 10px 30px rgba(16,24,40,0.12);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                <div style="font-size:1.15rem;font-weight:600;">Processing listings</div>
+                <div id="progressCount" style="font-size:1.15rem;font-weight:600;">0 / 10</div>
+            </div>
+            <div class="progress" style="height:44px;border-radius:12px;overflow:hidden;margin-top:10px;">
+                <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width:0%;height:100%;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:1.05rem;">0%</div>
+            </div>
         </div>
         <div class="list-grid mt-3;">
             @foreach (var item in Model)
@@ -64,7 +84,6 @@
                         </div>
                         <ul class="list-group list-group-flush" style="margin:8px 0;padding:0 16px;">
                             <li class="list-group-item">Location: <span class="text-muted">@item.Location</span></li>
-                            <li class="list-group-item">Views: <span class="text-muted">@item.Views</span></li>
                         </ul>
                         <div class="card-body px-4 pb-4 card-links">
                             <a href="@item.OriginalUrl" target="_blank" class="card-link btn btn-outline-primary btn-sm">View on OLX</a>
@@ -79,6 +98,7 @@
         const form = document.getElementById('scrapeForm');
         const input = document.getElementById('scrapeUrl');
         const btn = document.getElementById('scrapeBtn');
+        const spinner = document.getElementById('urlSpinner');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -87,19 +107,84 @@
             btn.disabled = true;
             const oldText = btn.innerText;
             btn.innerText = 'Scraping...';
+
             try {
-                const res = await fetch('/api/listings', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url })
-                });
-                if (!res.ok) {
-                    const txt = await res.text();
-                    alert('Scrape failed: ' + res.status + '\n' + txt);
+                // determine if this is a search url by checking for /q- anywhere
+                const isSearch = /\/q-[^\/]+/i.test(url);
+
+                if (!isSearch) {
+                    // single listing
+                    const res = await fetch('/api/listings', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
+                    });
+                    if (!res.ok) {
+                        const txt = await res.text();
+                        alert('Scrape failed: ' + res.status + '\n' + txt);
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
-                    // refresh the current page to show the new listing in the grid
+                    // search page: extract search keyword, then extract urls
+                    spinner.style.display = 'block';
+                    let keyword = null;
+                    try {
+                        const kres = await fetch('/api/listings/extract-keyword', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
+                        if (kres.ok) {
+                            const kd = await kres.json();
+                            keyword = kd?.keyword;
+                        }
+                    } catch (ex) {
+                        // ignore
+                    }
+
+                    // fetch listing urls
+                    let extractRes;
+                    try {
+                        extractRes = await fetch('/api/listings/extract-urls', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
+                    } catch (ex) {
+                        spinner.style.display = 'none';
+                        alert('Failed to fetch listing URLs: ' + ex);
+                        return;
+                    }
+
+                    spinner.style.display = 'none';
+
+                    if (!extractRes.ok) {
+                        const txt = await extractRes.text();
+                        alert('Failed to extract URLs: ' + extractRes.status + '\n' + txt);
+                        return;
+                    }
+
+                    const urls = await extractRes.json();
+                    if (!Array.isArray(urls) || urls.length === 0) {
+                        alert('No listings found on the search page');
+                        return;
+                    }
+
+                    // show progress UI and process each URL sequentially
+                    const progressEl = document.getElementById('bulkProgress');
+                    progressEl.style.display = 'block';
+                    const total = Math.min(10, urls.length);
+                    document.getElementById('progressCount').innerText = `0 / ${total}`;
+                    const bar = document.getElementById('progressBar');
+                    bar.style.width = '0%';
+                    bar.innerText = '0%';
+                    let completed = 0;
+
+                    for (let u of urls.slice(0, total)) {
+                        try {
+                            await fetch('/api/listings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url: u }) });
+                        } catch (e) {
+                            // ignore per-item error
+                        }
+                        completed++;
+                        const pct = Math.round((completed/total)*100);
+                        bar.style.width = pct + '%';
+                        bar.innerText = pct + '%';
+                        document.getElementById('progressCount').innerText = `${completed} / ${total}`;
+                    }
+
+                    // finished
                     window.location.reload();
                 }
             } catch (err) {

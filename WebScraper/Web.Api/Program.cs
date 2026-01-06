@@ -31,6 +31,25 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Clear Listings and Images on startup when in Development to ensure a clean DB after rebuilds
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var env = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+        if (env.IsDevelopment())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<WebScraperDbContext>();
+            // Remove all listings and images
+            db.Images.RemoveRange(db.Images);
+            db.Listings.RemoveRange(db.Listings);
+            db.SaveChanges();
+        }
+    }
+    catch{// ignore errors during cleanup to avoid breaking startup
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
