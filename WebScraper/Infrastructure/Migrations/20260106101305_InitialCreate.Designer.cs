@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(WebScraperDbContext))]
-    [Migration("20260106091502_AddPriceAndListingIdColumns")]
-    partial class AddPriceAndListingIdColumns
+    [Migration("20260106101305_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

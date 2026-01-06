@@ -18,15 +18,17 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PublicationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SellerName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SellerPhone = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    OriginalUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ExtractionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    OriginalUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExtractionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Views = table.Column<int>(type: "int", nullable: false),
+                    ListingId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

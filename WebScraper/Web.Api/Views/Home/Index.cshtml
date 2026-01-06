@@ -1,0 +1,114 @@
+@model IEnumerable<Domain.Entities.Listing>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Listings</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-size: 1.05rem; }
+        .ad-card { border-radius: 2rem; box-shadow: 0 8px 20px rgba(16,24,40,0.08); transition: transform .18s ease, box-shadow .18s ease; overflow: hidden; }
+        .ad-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(16,24,40,0.12); }
+        .image-box { position: relative; }
+        .price-badge { position: absolute; right: 12px; top: 12px; background: linear-gradient(90deg,#ff6b6b,#ff8e53); color: #fff; padding: 8px 12px; border-radius: 999px; font-weight:700; box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+        .ad-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 6px; }
+        .ad-seller { font-size: 0.95rem; color: #6b7280; margin-bottom: 8px; }
+        .ad-desc { font-size: 1.02rem; color: #374151; max-height: 6.5rem; overflow: auto; }
+        .list-group-item { font-size: 1.02rem; }
+        .card-links a { margin-right: 2px; }
+        .card-body { padding-bottom: .5rem; }
+
+        .list-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.25rem;
+            width: 80%;
+            margin: 0 auto;
+        }
+        .ad-item { display: block; }
+        @@media (min-width: 576px) { .list-grid { grid-template-columns: repeat(2, 1fr); } }
+        @@media (min-width: 768px) { .list-grid { grid-template-columns: repeat(3, 1fr); } }
+        @@media (min-width: 992px) { .list-grid { grid-template-columns: repeat(4, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="py-4">
+        <h1>Scraped Listings</h1>
+        <div class="search-bar mb-4" style="display:flex;align-items:center;justify-content:center;">
+            <form id="scrapeForm" style="width:100%;max-width:1100px;">
+                <div style="display:flex;gap:8px;">
+                    <input id="scrapeUrl" type="url" placeholder="Paste listing URL (OLX, Storia...)" aria-label="Listing URL" required
+                           style="flex:1;padding:20px 24px;border-radius:999px;border:1px solid #e5e7eb;font-size:1.1rem;box-shadow:0 6px 18px rgba(16,24,40,0.04);" />
+                    <button id="scrapeBtn" type="submit" class="btn btn-primary" style="padding:14px 22px;border-radius:999px;font-size:1.05rem;">Scrape</button>
+                </div>
+            </form>
+        </div>
+        <div class="list-grid mt-3;">
+            @foreach (var item in Model)
+            {
+                <div class="ad-item">
+                    <div class="card h-100 p-0 ad-card">
+                        @if (item.Images?.FirstOrDefault() != null)
+                        {
+                            var fileName = item.Images.First().FileName ?? string.Empty;
+                            <div class="image-box mb-3" style="height:340px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;padding:8px;">
+                                <div class="price-badge">@((item.Price>0)? String.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N0} {1}", item.Price, item.Currency) : "Free")</div>
+                                <img src="/Images/@Uri.EscapeDataString(fileName)" class="card-img-top" alt="@item.Title" style="max-height:100%;max-width:100%;object-fit:contain;border-radius:18px;" />
+                            </div>
+                        }
+                        <div class="card-body px-4 py-3">
+                            <div class="ad-title">@item.Title</div>
+                            <div class="ad-seller">@item.SellerName</div>
+                            <p class="ad-desc">@item.Description</p>
+                        </div>
+                        <ul class="list-group list-group-flush" style="margin:8px 0;padding:0 16px;">
+                            <li class="list-group-item">Location: <span class="text-muted">@item.Location</span></li>
+                            <li class="list-group-item">Views: <span class="text-muted">@item.Views</span></li>
+                        </ul>
+                        <div class="card-body px-4 pb-4 card-links">
+                            <a href="@item.OriginalUrl" target="_blank" class="card-link btn btn-outline-primary btn-sm">View on OLX</a>
+                            <a href="/api/listings/@item.Id" class="card-link btn btn-outline-secondary btn-sm">API</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('scrapeForm');
+        const input = document.getElementById('scrapeUrl');
+        const btn = document.getElementById('scrapeBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = input.value?.trim();
+            if (!url) return;
+            btn.disabled = true;
+            const oldText = btn.innerText;
+            btn.innerText = 'Scraping...';
+            try {
+                const res = await fetch('/api/listings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+                if (!res.ok) {
+                    const txt = await res.text();
+                    alert('Scrape failed: ' + res.status + '\n' + txt);
+                } else {
+                    // refresh the current page to show the new listing in the grid
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert('Error: ' + err);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = oldText;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,7 +2,9 @@
 using Application.Services;
 using Domain.Entities;
 using HtmlAgilityPack;
+using Microsoft.VisualBasic;
 using System.Globalization;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 
 namespace Application.Scrapers
@@ -10,21 +12,29 @@ namespace Application.Scrapers
     public class OlxScraper : IScraper
     {
         private readonly ImageDownloader _imageDownloader;
+        private readonly IHttpClientFactory _httpFactory;
 
-        public OlxScraper(ImageDownloader imageDownloader)
+        public OlxScraper(ImageDownloader imageDownloader, IHttpClientFactory httpFactory)
         {
             _imageDownloader = imageDownloader;
+            _httpFactory = httpFactory;
         }
 
         public async Task<Listing> ScrapeListingAsync(string url)
         {
-            var web = new HtmlWeb();
-            var document = await web.LoadFromWebAsync(url);
+            // Fetch page HTML with a browser-like HttpClient to increase chance of server returning full content
+            var client = _httpFactory.CreateClient();
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
+            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro-RO,ro;q=0.9,en-US;q=0.8,en;q=0.7");
+            client.DefaultRequestHeaders.Referrer = new System.Uri(url);
 
-            // Extract title
-            var title = document.DocumentNode.SelectSingleNode("//h4[@class='css-1l3a0i9']")?.InnerText.Trim();
+            var html = await client.GetStringAsync(url);
+            var document = new HtmlDocument();
+            document.LoadHtml(html);
 
-            // Extract price and currency
+
+            // Price & Currency
             var priceText = document.DocumentNode.SelectSingleNode("//h3[@class='css-1j840l6']")?.InnerText.Trim();
             decimal price = 0;
             string? currency = null;
@@ -48,59 +58,29 @@ namespace Application.Scrapers
                 }
             }
 
-            // Extract description
+
+            // --- 3. Robust Views Extraction ---
+            var viewsNode = document.DocumentNode.SelectSingleNode("//span[@data-testid='page-view-counter']");
+            int viewsCount = 0;
+            if (viewsNode != null)
+            {
+                // Extracts digits from "Vizualizări: 10" -> "10"
+                var match = Regex.Match(viewsNode.InnerText, @"\d+");
+                if (match.Success) int.TryParse(match.Value, out viewsCount);
+            }
+
+
+            var title = document.DocumentNode.SelectSingleNode("//h4[@class='css-1l3a0i9']")?.InnerText.Trim();
             var description = document.DocumentNode.SelectSingleNode("//div[@class='css-19duwlz']")?.InnerText.Trim();
-
-            // Extract number of views (digits only) - try several selectors/fallbacks
-            var views = 0;
-            string? viewsText = null;
-            var viewsNode = document.DocumentNode.SelectSingleNode("//span[@data-testid='page-view-counter']")
-                            ?? document.DocumentNode.SelectSingleNode("//span[contains(@class,'css-16uueru')]")
-                            ?? document.DocumentNode.SelectSingleNode("//span[contains(text(),'Vizualiz')]");
-            if (viewsNode != null) viewsText = viewsNode.InnerText.Trim();
-            if (string.IsNullOrEmpty(viewsText))
-            {
-                // try to find any node containing the word Vizualiz or Vizualizari
-                var any = document.DocumentNode.SelectSingleNode("//*[contains(text(),'Vizualiz') or contains(text(),'Vizualizari')]");
-                if (any != null) viewsText = any.InnerText;
-            }
-            if (!string.IsNullOrEmpty(viewsText))
-            {
-                var digits = Regex.Match(viewsText, "\\d+");
-                if (digits.Success && int.TryParse(digits.Value, out var v)) views = v;
-            }
-
-            // Extract ad ID
             var adId = document.DocumentNode.SelectSingleNode("//span[@class='css-ooacec']")?.InnerText.Replace("ID: ", "").Trim();
-
-            // Extract seller name
             var sellerName = document.DocumentNode.SelectSingleNode("//h4[@data-testid='user-profile-user-name']")?.InnerText.Trim();
 
-            // Extract location - prefer the city / region elements, ignore seller-links and fallback to other selectors
-            string? location = null;
-            var loc1 = document.DocumentNode.SelectSingleNode("//p[@class='css-9pna1a']")?.InnerText.Trim();
-            var loc2 = document.DocumentNode.SelectSingleNode("//p[@class='css-3cz5o2']")?.InnerText.Trim();
-            // ignore obvious non-location texts
-            bool IsBadLocation(string? s) => string.IsNullOrEmpty(s) || s.Contains("Mai multe anun", StringComparison.InvariantCultureIgnoreCase) || s.Contains("anun");
-            if (!IsBadLocation(loc1) || !IsBadLocation(loc2))
-            {
-                location = string.Join(", ", new[] { loc1, loc2 }.Where(part => !string.IsNullOrEmpty(part)));
-            }
-            // fallback: try breadcrumb or meta tags
-            if (string.IsNullOrEmpty(location))
-            {
-                var breadcrumb = document.DocumentNode.SelectSingleNode("//nav//a[last()]")?.InnerText.Trim();
-                if (!string.IsNullOrEmpty(breadcrumb) && !IsBadLocation(breadcrumb)) location = breadcrumb;
-            }
-            if (string.IsNullOrEmpty(location))
-            {
-                var metaLoc = document.DocumentNode.SelectSingleNode("//meta[@property='og:locality']")?.GetAttributeValue("content", null)
-                              ?? document.DocumentNode.SelectSingleNode("//meta[@name='location']")?.GetAttributeValue("content", null);
-                if (!string.IsNullOrEmpty(metaLoc)) location = metaLoc;
-            }
-            if (string.IsNullOrEmpty(location)) location = loc2 ?? loc1;
-
-            ExtractPublicationDate();
+            //Location
+            var cityNode = document.DocumentNode.SelectSingleNode("//p[@class='css-9pna1a']");
+            var countyNode = document.DocumentNode.SelectSingleNode("//p[@class='css-3cz5o2']");
+            string city = cityNode?.InnerText.Trim() ?? "Unknown City";
+            string county = countyNode?.InnerText.Trim() ?? "";
+            string fullLocation = string.IsNullOrEmpty(county) ? city : $"{city}, {county}";
 
             var images = await ExtractImages(_imageDownloader);
 
@@ -148,7 +128,7 @@ namespace Application.Scrapers
             }
 
 
-            void ExtractPublicationDate()
+            DateTime ExtractPublicationDate()
             {
                 // Extract publication date
                 var publicationDate = default(DateTime);
@@ -203,19 +183,22 @@ namespace Application.Scrapers
                         }
                     }
                 }
+
+                return publicationDate;
             }
 
             return new Listing
             {
                 Title = title,
-                Price = price,
+                Price = price, // from your regex logic
                 Currency = currency,
-                Description = description,
+                Description = document.DocumentNode.SelectSingleNode("//div[@class='css-19duwlz']")?.InnerText.Trim(),
+                PublicationDate = ExtractPublicationDate(),
                 OriginalUrl = url,
                 ExtractionDate = DateTime.UtcNow,
                 SellerName = sellerName,
-                Location = location,
-                Views = views,
+                Location = fullLocation,
+                Views = viewsCount,
                 ListingId = adId,
                 Images = images
             };
