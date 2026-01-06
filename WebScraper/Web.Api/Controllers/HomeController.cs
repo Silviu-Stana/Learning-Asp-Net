@@ -1,26 +1,23 @@
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Repositories;
 
 namespace Web.Api.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly WebScraperDbContext _db;
+        private readonly IListingRepository _listings;
 
-        public HomeController(WebScraperDbContext db)
+        public HomeController(IListingRepository listings)
         {
-            _db = db;
+            _listings = listings;
         }
 
         public async Task<IActionResult> Index()
         {
             // Return only the last 10 listings by ExtractionDate (most recent first)
-            var listings = await _db.Listings
-                .Include(l => l.Images)
-                .OrderByDescending(l => l.ExtractionDate)
-                .Take(10)
-                .ToListAsync();
+            var listings = await _listings.GetLatestAsync(10);
             return View(listings);
         }
 

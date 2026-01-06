@@ -7,7 +7,7 @@
     <title>Listings</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <style>
-        body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-size: 1.05rem; }
+        body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-size: 1.05rem; background: #f3f4f6; }
         .ad-card { border-radius: 2rem; box-shadow: 0 8px 20px rgba(16,24,40,0.08); transition: transform .18s ease, box-shadow .18s ease; overflow: hidden; }
         .ad-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(16,24,40,0.12); }
         .image-box { position: relative; }
@@ -31,6 +31,9 @@
             width: 80%;
             margin: 0 auto;
         }
+
+        /* Each ad card should have a white background so it stands out on the gray page */
+        .ad-card { background: #ffffff; }
         .ad-item { display: block; }
         @@media (min-width: 576px) { .list-grid { grid-template-columns: repeat(2, 1fr); } }
         @@media (min-width: 768px) { .list-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -39,7 +42,7 @@
 </head>
 <body>
     <div class="py-4">
-        <h1 style=text-center>Scraped Listings</h1>
+        <h1 class="text-center mb-4">WebScraper</h1>
         <div class="search-bar mb-4" style="display:flex;align-items:center;justify-content:center;">
             <form id="scrapeForm" style="width:100%;max-width:1100px;">
                 <div style="display:flex;gap:8px;">
@@ -55,6 +58,19 @@
         </div>
             </form>
         </div>
+        @if (Model?.Any() == true)
+        {
+            <div class="export-actions mb-3" style="display:flex;gap:10px;align-items:center;justify-content:center;">
+                <button id="exportCsvBtn" type="button" class="btn" style="background:#10b981;color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;">CSV</button>
+                <button id="exportJsonBtn" type="button" class="btn" style="background:#3b82f6;color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;">JSON</button>
+                <button id="exportExcelBtn" type="button" class="btn" style="background:#f59e0b;color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;">Excel</button>
+            </div>
+
+            <script>
+                // embed server model for client-side exports
+                window.__initialListings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+            </script>
+        }
         <div id="bulkProgress" class="mb-3" style="display:none;max-width:1200px;margin:0 auto;position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:1050;padding:12px 18px;background:rgba(255,255,255,0.98);border-radius:18px;box-shadow:0 10px 30px rgba(16,24,40,0.12);">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
                 <div style="font-size:1.15rem;font-weight:600;">Processing listings</div>
@@ -126,16 +142,9 @@
                 } else {
                     // search page: extract search keyword, then extract urls
                     spinner.style.display = 'block';
-                    let keyword = null;
                     try {
-                        const kres = await fetch('/api/listings/extract-keyword', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
-                        if (kres.ok) {
-                            const kd = await kres.json();
-                            keyword = kd?.keyword;
-                        }
-                    } catch (ex) {
-                        // ignore
-                    }
+                        await fetch('/api/listings/extract-keyword', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
+                    } catch { }
 
                     // fetch listing urls
                     let extractRes;
@@ -193,6 +202,92 @@
                 btn.disabled = false;
                 btn.innerText = oldText;
             }
+        });
+
+        // Client-side export handlers — use visible listings embedded in window.__initialListings
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const exportJsonBtn = document.getElementById('exportJsonBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+
+        function getVisibleListings() {
+            try {
+                return window.__initialListings || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function escapeCsv(value) {
+            if (value == null) return '';
+            const s = String(value);
+            const escaped = s.replace(/"/g, '""');
+            if (/[",\n\r]/.test(s)) return '"' + escaped + '"';
+            return escaped;
+        }
+
+        function downloadBlob(data, mime, filename) {
+            const blob = new Blob([data], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        if (exportJsonBtn) exportJsonBtn.addEventListener('click', () => {
+            const items = getVisibleListings();
+            const json = JSON.stringify(items, null, 2);
+            downloadBlob(json, 'application/json', 'listings.json');
+        });
+
+        if (exportCsvBtn) exportCsvBtn.addEventListener('click', () => {
+            const items = getVisibleListings();
+            if (!items || items.length === 0) { alert('No listings to export'); return; }
+            const headers = ['Id','Title','Price','Currency','Location','SellerName','Views','OriginalUrl','ExtractionDate','ListingId','Description'];
+            const lines = [headers.join(',')];
+            for (const it of items) {
+                lines.push([
+                    it.Id ?? '',
+                    escapeCsv(it.Title),
+                    (it.Price ?? '').toString(),
+                    escapeCsv(it.Currency),
+                    escapeCsv(it.Location),
+                    escapeCsv(it.SellerName),
+                    it.Views ?? '',
+                    escapeCsv(it.OriginalUrl),
+                    it.ExtractionDate ?? '',
+                    escapeCsv(it.ListingId),
+                    escapeCsv(it.Description)
+                ].join(','));
+            }
+            downloadBlob(lines.join('\r\n'), 'text/csv;charset=utf-8;', 'listings.csv');
+        });
+
+        if (exportExcelBtn) exportExcelBtn.addEventListener('click', () => {
+            // Excel can open CSV — provide CSV but with xlsx filename for convenience
+            const items = getVisibleListings();
+            if (!items || items.length === 0) { alert('No listings to export'); return; }
+            const headers = ['Id','Title','Price','Currency','Location','SellerName','Views','OriginalUrl','ExtractionDate','ListingId','Description'];
+            const lines = [headers.join(',')];
+            for (const it of items) {
+                lines.push([
+                    it.Id ?? '',
+                    escapeCsv(it.Title),
+                    (it.Price ?? '').toString(),
+                    escapeCsv(it.Currency),
+                    escapeCsv(it.Location),
+                    escapeCsv(it.SellerName),
+                    it.Views ?? '',
+                    escapeCsv(it.OriginalUrl),
+                    it.ExtractionDate ?? '',
+                    escapeCsv(it.ListingId),
+                    escapeCsv(it.Description)
+                ].join(','));
+            }
+            downloadBlob(lines.join('\r\n'), 'application/vnd.ms-excel', 'listings.xlsx');
         });
     </script>
 </body>

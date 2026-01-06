@@ -6,6 +6,7 @@ using System.IO;
 using Application.Services;
 using Application.Scrapers;
 using Application.Interfaces;
+using Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ builder.Services.AddScoped<ImageDownloader>();
 
 // Register default scraper (Olx)
 builder.Services.AddScoped<IScraper, OlxScraper>();
+// Repositories
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IListingRepository, ListingRepository>();
+builder.Services.AddScoped<IImageRepository, ImageRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -9,6 +9,8 @@ namespace Domain.Entities
         public string? FileName { get; set; }
         public bool IsPrimary { get; set; }
 
+        //Prevent infinite circular references
+        [System.Text.Json.Serialization.JsonIgnore]
         public Listing? Listing { get; set; }
     }
 }

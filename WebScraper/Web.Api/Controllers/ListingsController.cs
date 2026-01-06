@@ -12,11 +12,15 @@ namespace Web.Api.Controllers
     {
         private readonly IScraper _scraper;
         private readonly WebScraperDbContext _db;
+        private readonly Infrastructure.Repositories.IListingRepository _listings;
+        private readonly Infrastructure.Repositories.IImageRepository _images;
 
-        public ListingsController(IScraper scraper, WebScraperDbContext db)
+        public ListingsController(IScraper scraper, WebScraperDbContext db, Infrastructure.Repositories.IListingRepository listings, Infrastructure.Repositories.IImageRepository images)
         {
             _scraper = scraper;
             _db = db;
+            _listings = listings;
+            _images = images;
         }
 
         public record ScrapeRequest(string Url);
@@ -28,6 +32,14 @@ namespace Web.Api.Controllers
         {
             if (request is null || string.IsNullOrWhiteSpace(request.Url))
                 return BadRequest(new { error = "Url is required" });
+
+            // Check database first to avoid unnecessary scraping
+            var existing = await _db.Listings.Include(l => l.Images)
+                .FirstOrDefaultAsync(l => l.OriginalUrl == request.Url);
+            if (existing != null)
+            {
+                return Conflict(new { message = "Listing already exists", listing = existing });
+            }
 
             // Scrape the listing
             Listing listing;
@@ -44,9 +56,8 @@ namespace Web.Api.Controllers
                 return StatusCode(500, new { error = "Scraper returned no data" });
 
             // Prevent duplicates by OriginalUrl or external ListingId
-            var exists = await _db.Listings
-                .Include(l => l.Images)
-                .FirstOrDefaultAsync(l => l.OriginalUrl == listing.OriginalUrl || (!string.IsNullOrEmpty(listing.ListingId) && l.ListingId == listing.ListingId));
+            var exists = await _listings.GetByOriginalUrlAsync(listing.OriginalUrl)
+                ?? await _listings.GetByListingIdAsync(listing.ListingId ?? string.Empty);
 
             if (exists != null)
             {
@@ -62,8 +73,8 @@ namespace Web.Api.Controllers
                 }
             }
 
-            _db.Listings.Add(listing);
-            await _db.SaveChangesAsync();
+            await _listings.AddAsync(listing);
+            await _listings.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetListing), new { id = listing.Id }, listing);
         }
@@ -71,9 +82,67 @@ namespace Web.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetListing(int id)
         {
-            var listing = await _db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
+            var listing = await _listings.GetByIdAsync(id);
             if (listing == null) return NotFound();
             return Ok(listing);
+        }
+
+        /// <summary>
+        /// Export the latest listings in the requested format. Supported: csv, json, excel
+        /// </summary>
+        [HttpGet("export")]
+        public async Task<IActionResult> Export([FromQuery] string format = "csv")
+        {
+            format = (format ?? string.Empty).ToLowerInvariant();
+            var items = (await _listings.GetLatestAsync(100)).ToList();
+
+            if (format == "json")
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(items);
+                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                return File(bytes, "application/json", "listings.json");
+            }
+
+            // Build CSV
+            string Escape(string? s)
+            {
+                if (s == null) return string.Empty;
+                var v = s.Replace("\"", "\"\"");
+                if (v.Contains(',') || v.Contains('\n') || v.Contains('\r') || v.Contains('"'))
+                    return "\"" + v + "\"";
+                return v;
+            }
+
+            var csvLines = new List<string>();
+            csvLines.Add("Id,Title,Price,Currency,Location,SellerName,Views,OriginalUrl,ExtractionDate,ListingId,Description");
+            foreach (var it in items)
+            {
+                csvLines.Add(string.Join(",",
+                    it.Id.ToString(),
+                    Escape(it.Title),
+                    it.Price.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    Escape(it.Currency),
+                    Escape(it.Location),
+                    Escape(it.SellerName),
+                    it.Views.ToString(),
+                    Escape(it.OriginalUrl),
+                    it.ExtractionDate.ToString("o"),
+                    Escape(it.ListingId),
+                    Escape(it.Description)
+                ));
+            }
+
+            var csv = string.Join("\r\n", csvLines);
+            var csvBytes = System.Text.Encoding.UTF8.GetBytes(csv);
+
+            if (format == "excel")
+            {
+                // return CSV with excel mime and .xlsx extension (Excel will open CSV)
+                return File(csvBytes, "application/vnd.ms-excel", "listings.xlsx");
+            }
+
+            // default csv
+            return File(csvBytes, "text/csv", "listings.csv");
         }
 
         /// <summary>
@@ -103,6 +172,15 @@ namespace Web.Api.Controllers
             {
                 try
                 {
+                    // Check if this URL already exists in DB to skip scraping
+                    var existsBefore = await _listings.GetByOriginalUrlAsync(url);
+                    if (existsBefore != null)
+                    {
+                        skipped++;
+                        details.Add(new { url, status = "skipped", reason = "exists", existingId = existsBefore.Id });
+                        continue;
+                    }
+
                     var scraped = await _scraper.ScrapeListingAsync(url);
                     if (scraped == null)
                     {
@@ -128,8 +206,8 @@ namespace Web.Api.Controllers
                         }
                     }
 
-                    _db.Listings.Add(scraped);
-                    await _db.SaveChangesAsync();
+                    await _listings.AddAsync(scraped);
+                    await _listings.SaveChangesAsync();
                     created++;
                     details.Add(new { url, status = "created", id = scraped.Id });
                 }
