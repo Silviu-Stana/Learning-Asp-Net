@@ -15,7 +15,7 @@ namespace Domain.Entities
         public string OriginalUrl { get; set; } = string.Empty;
         public DateTime ExtractionDate { get; set; }
 
-        public int Views { get; set; }
+        public string? Views { get; set; }
 
         //Helps prevent duplicates when scraping data.
         public string? ListingId { get; set; }

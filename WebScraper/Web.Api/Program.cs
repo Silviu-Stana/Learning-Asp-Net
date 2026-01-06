@@ -51,7 +51,8 @@ using (var scope = app.Services.CreateScope())
             db.SaveChanges();
         }
     }
-    catch{// ignore errors during cleanup to avoid breaking startup
+    catch
+    {// ignore errors during cleanup to avoid breaking startup
     }
 }
 

@@ -45,9 +45,15 @@
         <h1 class="text-center mb-4">WebScraper</h1>
         <div class="search-bar mb-4" style="display:flex;align-items:center;justify-content:center;">
             <form id="scrapeForm" style="width:100%;max-width:1100px;">
-                <div style="display:flex;gap:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
                     <input id="scrapeUrl" type="url" placeholder="Paste listing URL (OLX, Storia...)" aria-label="Listing URL" required
                            style="flex:1;padding:20px 24px;border-radius:999px;border:1px solid #e5e7eb;font-size:1.1rem;box-shadow:0 6px 18px rgba(16,24,40,0.04);" />
+                    <select id="resultsCount" aria-label="Results count" style="padding:12px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-weight:600;">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                    </select>
                     <button id="scrapeBtn" type="submit" class="btn btn-primary" style="padding:14px 22px;border-radius:999px;font-size:1.05rem;">Scrape</button>
                 </div>
         <div id="urlSpinner" style="display:none;max-width:1100px;margin:6px auto 12px auto;text-align:center;">
@@ -100,6 +106,7 @@
                         </div>
                         <ul class="list-group list-group-flush" style="margin:8px 0;padding:0 16px;">
                             <li class="list-group-item">Location: <span class="text-muted">@item.Location</span></li>
+                            <li class="list-group-item"><span class="text-muted">@item.Views</span></li>
                         </ul>
                         <div class="card-body px-4 pb-4 card-links">
                             <a href="@item.OriginalUrl" target="_blank" class="card-link btn btn-outline-primary btn-sm">View on OLX</a>
@@ -127,6 +134,8 @@
             try {
                 // determine if this is a search url by checking for /q- anywhere
                 const isSearch = /\/q-[^\/]+/i.test(url);
+                const countSelect = document.getElementById('resultsCount');
+                const resultsCount = countSelect ? parseInt(countSelect.value || '10', 10) : 10;
 
                 if (!isSearch) {
                     // single listing
@@ -149,7 +158,7 @@
                     // fetch listing urls
                     let extractRes;
                     try {
-                        extractRes = await fetch('/api/listings/extract-urls', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
+                        extractRes = await fetch('/api/listings/extract-urls', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url, results: resultsCount }) });
                     } catch (ex) {
                         spinner.style.display = 'none';
                         alert('Failed to fetch listing URLs: ' + ex);
@@ -173,7 +182,7 @@
                     // show progress UI and process each URL sequentially
                     const progressEl = document.getElementById('bulkProgress');
                     progressEl.style.display = 'block';
-                    const total = Math.min(10, urls.length);
+                    const total = Math.min(resultsCount, urls.length);
                     document.getElementById('progressCount').innerText = `0 / ${total}`;
                     const bar = document.getElementById('progressBar');
                     bar.style.width = '0%';

@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
 using HtmlAgilityPack;
@@ -26,8 +26,6 @@ namespace Application.Scrapers
             var client = _httpFactory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
             client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
-            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro-RO,ro;q=0.9,en-US;q=0.8,en;q=0.7");
-            client.DefaultRequestHeaders.Referrer = new Uri(url);
 
             var html = await client.GetStringAsync(url);
             var document = new HtmlDocument();
@@ -54,21 +52,15 @@ namespace Application.Scrapers
 
             var description = document.DocumentNode.SelectSingleNode("//div[contains(@class,'css-19duwlz')]")?.InnerText.Trim();
 
-            // Extract views
-            var views = 0;
-            string? viewsText = document.DocumentNode.SelectSingleNode("//span[@data-testid='page-view-counter']")?.InnerText
-                                ?? document.DocumentNode.SelectSingleNode("//span[contains(@class,'css-16uueru')]")?.InnerText
-                                ?? document.DocumentNode.SelectSingleNode("//*[contains(text(),'Vizualiz')]")?.InnerText;
-            if (!string.IsNullOrEmpty(viewsText))
-            {
-                var digitsOnly = Regex.Replace(viewsText, "\\D+", "");
-                if (!string.IsNullOrEmpty(digitsOnly) && int.TryParse(digitsOnly, out var v)) views = v;
-            }
 
+
+
+            
+            
             var adId = document.DocumentNode.SelectSingleNode("//span[contains(@class,'css-ooacec')]")?.InnerText.Replace("ID: ", "").Trim();
             var sellerName = document.DocumentNode.SelectSingleNode("//h4[@data-testid='user-profile-user-name']")?.InnerText.Trim();
 
-            string city = document.DocumentNode.SelectSingleNode("//p[contains(@class,'css-9pna1a')]")?.InnerText.Trim() ?? string.Empty;
+            string city = document.DocumentNode.SelectSingleNode("//p[contains(@class,'css-1bzg5dq')]")?.InnerText ?? "Not found";
 
             // images
             var images = new List<Image>();
@@ -83,7 +75,7 @@ namespace Application.Scrapers
                 {
                     foreach (var imgNode in imageNodes)
                     {
-                        var src = imgNode.GetAttributeValue("src", null) ?? imgNode.GetAttributeValue("data-src", string.Empty);
+                        var src = imgNode.GetAttributeValue("src", string.Empty) ?? imgNode.GetAttributeValue("data-src", string.Empty);
                         if (!string.IsNullOrEmpty(src))
                         {
                             var localPath = await _imageDownloader.DownloadImageAsync(src, "Images");
@@ -119,14 +111,12 @@ namespace Application.Scrapers
             return listing;
         }
 
-        public async Task<IEnumerable<string>> ExtractListingUrlsFromSearchAsync(string searchUrl)
+        public async Task<IEnumerable<string>> ExtractListingUrlsFromSearchAsync(string searchUrl, int maxResults = 10)
         {
             // Use HttpClient + HtmlAgilityPack to load search page and extract first 10 listing hrefs
             var client = _httpFactory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
             client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
-            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro-RO,ro;q=0.9,en-US;q=0.8,en;q=0.7");
-            client.DefaultRequestHeaders.Referrer = new Uri(searchUrl);
 
             var html = await client.GetStringAsync(searchUrl);
             var doc = new HtmlDocument();
@@ -152,7 +142,7 @@ namespace Application.Scrapers
                             {
                                 if (href.StartsWith("/")) href = new Uri(new Uri("https://www.olx.ro"), href).ToString();
                                 if (!results.Contains(href)) results.Add(href);
-                                if (results.Count >= 10) break;
+                                if (results.Count >= maxResults) break;
                             }
                         }
                     }
@@ -160,31 +150,36 @@ namespace Application.Scrapers
                 }
             }
 
-            return results.Take(10).ToList();
+            // If we still don't have enough, try fetching additional pages by scrolling simulation is not possible with HAP,
+            // but OLX uses paged URLs — try appending page parameters or visiting subsequent result pages if pattern exists.
+            // For now, return up to maxResults from what we found.
+            return results.Take(maxResults).ToList();
         }
 
         public async Task<string?> ExtractSearchKeywordFromUrlAsync(string searchUrl)
         {
-            // If the URL contains /q- then extract from q- to next slash
-            try
+            return await Task.Run(() =>
             {
-                var uri = new Uri(searchUrl);
-                var path = uri.AbsolutePath; // preserves the original path
-                var idx = path.IndexOf("/q-", StringComparison.OrdinalIgnoreCase);
-                if (idx < 0) return null;
-                var start = idx + 3; // position of 'q-'
-                var rest = path.Substring(start);
-                var endIdx = rest.IndexOf('/');
-                var keyword = endIdx >= 0 ? rest.Substring(0, endIdx) : rest;
-                return Uri.UnescapeDataString(keyword);
-            }
-            catch
-            {
-                // fallback: try regex
-                var m = Regex.Match(searchUrl, "/q-([^/]+)");
-                if (m.Success) return Uri.UnescapeDataString(m.Groups[1].Value);
-                return null;
-            }
+                try
+                {
+                    var uri = new Uri(searchUrl);
+                    var path = uri.AbsolutePath; // preserves the original path
+                    var idx = path.IndexOf("/q-", StringComparison.OrdinalIgnoreCase);
+                    if (idx < 0) return null;
+                    var start = idx + 3; // position of 'q-'
+                    var rest = path.Substring(start);
+                    var endIdx = rest.IndexOf('/');
+                    var keyword = endIdx >= 0 ? rest.Substring(0, endIdx) : rest;
+                    return Uri.UnescapeDataString(keyword);
+                }
+                catch
+                {
+                    // fallback: try regex
+                    var m = Regex.Match(searchUrl, "/q-([^/]+)");
+                    if (m.Success) return Uri.UnescapeDataString(m.Groups[1].Value);
+                    return null;
+                }
+            });
         }
     }
 }

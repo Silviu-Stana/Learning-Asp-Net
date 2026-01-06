@@ -23,7 +23,7 @@ namespace Web.Api.Controllers
             _images = images;
         }
 
-        public record ScrapeRequest(string Url);
+        public record ScrapeRequest(string Url, int Results = 10);
 
         public record BulkScrapeResult(int Created, int Skipped, IEnumerable<object> Details);
 
@@ -124,7 +124,7 @@ namespace Web.Api.Controllers
                     Escape(it.Currency),
                     Escape(it.Location),
                     Escape(it.SellerName),
-                    it.Views.ToString(),
+                    Escape(it.Views),
                     Escape(it.OriginalUrl),
                     it.ExtractionDate.ToString("o"),
                     Escape(it.ListingId),
@@ -161,7 +161,7 @@ namespace Web.Api.Controllers
             IEnumerable<string> listingUrls;
             try
             {
-                listingUrls = await _scraper.ExtractListingUrlsFromSearchAsync(request.Url);
+                listingUrls = await _scraper.ExtractListingUrlsFromSearchAsync(request.Url, request.Results);
             }
             catch (Exception ex)
             {
@@ -229,14 +229,17 @@ namespace Web.Api.Controllers
             IEnumerable<string> listingUrls;
             try
             {
-                listingUrls = await _scraper.ExtractListingUrlsFromSearchAsync(request.Url);
+                // Support optional results count
+                var take = (request.Results <= 0) ? 10 : request.Results;
+                var urls = await _scraper.ExtractListingUrlsFromSearchAsync(request.Url, take);
+                listingUrls = urls.Take(take);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "Failed to extract listing URLs", details = ex.Message });
             }
 
-            return Ok(listingUrls.Take(10));
+            return Ok(listingUrls);
         }
 
         [HttpPost("extract-keyword")]
