@@ -93,8 +93,16 @@ namespace Web.Api.Controllers
         [HttpGet("export")]
         public async Task<IActionResult> Export([FromQuery] string format = "csv")
         {
+
             format = (format ?? string.Empty).ToLowerInvariant();
             var items = (await _listings.GetLatestAsync(100)).ToList();
+            
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(items));
+
+            if (!items.Any())
+            {
+                return NotFound(new { message = "No listings available for export." });
+            }
 
             if (format == "json")
             {
@@ -102,6 +110,7 @@ namespace Web.Api.Controllers
                 var bytes = System.Text.Encoding.UTF8.GetBytes(json);
                 return File(bytes, "application/json", "listings.json");
             }
+            
 
             // Build CSV
             string Escape(string? s)
@@ -124,7 +133,7 @@ namespace Web.Api.Controllers
                     Escape(it.Currency),
                     Escape(it.Location),
                     Escape(it.SellerName),
-                    Escape(it.Views),
+                    string.IsNullOrEmpty(it.Views) ? "0" : it.Views,
                     Escape(it.OriginalUrl),
                     it.ExtractionDate.ToString("o"),
                     Escape(it.ListingId),
