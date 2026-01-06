@@ -1,10 +1,10 @@
-﻿using Application.Interfaces;
+using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
-using HtmlAgilityPack;
-using Microsoft.VisualBasic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using System.Globalization;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 
 namespace Application.Scrapers
@@ -12,196 +12,115 @@ namespace Application.Scrapers
     public class OlxScraper : IScraper
     {
         private readonly ImageDownloader _imageDownloader;
-        private readonly IHttpClientFactory _httpFactory;
+        private readonly IWebDriver _driver;
 
-        public OlxScraper(ImageDownloader imageDownloader, IHttpClientFactory httpFactory)
+        public OlxScraper(ImageDownloader imageDownloader)
         {
             _imageDownloader = imageDownloader;
-            _httpFactory = httpFactory;
+
+            var chromeOptions = new ChromeOptions();
+            chromeOptions.AddArgument("--headless=new");
+            chromeOptions.AddArgument("--disable-gpu");
+            chromeOptions.AddArgument("--no-sandbox");
+            chromeOptions.AddArgument("--disable-dev-shm-usage");
+            chromeOptions.AddArgument("--window-size=1920,1080");
+
+            _driver = new ChromeDriver(chromeOptions);
         }
 
         public async Task<Listing> ScrapeListingAsync(string url)
         {
-            // Fetch page HTML with a browser-like HttpClient to increase chance of server returning full content
-            var client = _httpFactory.CreateClient();
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
-            client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
-            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro-RO,ro;q=0.9,en-US;q=0.8,en;q=0.7");
-            client.DefaultRequestHeaders.Referrer = new System.Uri(url);
+            _driver.Navigate().GoToUrl(url);
 
-            var html = await client.GetStringAsync(url);
-            var document = new HtmlDocument();
-            document.LoadHtml(html);
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
 
+            // wait for title
+            wait.Until(d => d.FindElement(By.CssSelector("h4.css-1l3a0i9")));
 
-            // Price & Currency
-            var priceText = document.DocumentNode.SelectSingleNode("//h3[@class='css-1j840l6']")?.InnerText.Trim();
+            string GetText(By selector)
+            {
+                try { return _driver.FindElement(selector).Text.Trim(); } catch { return string.Empty; }
+            }
+
+            var title = GetText(By.CssSelector("h4.css-1l3a0i9"));
+            var priceText = GetText(By.CssSelector("h3.css-1j840l6"));
             decimal price = 0;
             string? currency = null;
             if (!string.IsNullOrEmpty(priceText))
             {
-                // Examples: "1 800 lei", "€ 1.200", "1.200 €"
                 var m = Regex.Match(priceText, @"(?<num>[0-9\s\.,]+)\s*(?<cur>[^0-9\s\.,]+)?");
                 if (m.Success)
                 {
-                    var num = m.Groups["num"].Value;
-                    var cur = m.Groups["cur"].Value?.Trim();
-                    // normalize number (remove spaces)
-                    num = num.Replace(" ", "").Replace("\u00A0", "");
-                    // replace comma with dot if necessary
+                    var num = m.Groups["num"].Value.Replace(" ", "").Replace('\u00A0', ' ');
                     num = num.Replace(',', '.');
-                    if (decimal.TryParse(num, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
-                    {
-                        price = parsed;
-                    }
-                    if (!string.IsNullOrEmpty(cur)) currency = cur;
+                    if (decimal.TryParse(num, NumberStyles.Number, CultureInfo.InvariantCulture, out var p)) price = p;
+                    currency = m.Groups["cur"].Value?.Trim();
                 }
             }
 
+            var description = string.Empty;
+            try { description = _driver.FindElement(By.CssSelector("div.css-19duwlz")).Text.Trim(); } catch { }
 
-            // --- 3. Robust Views Extraction ---
-            var viewsNode = document.DocumentNode.SelectSingleNode("//span[@data-testid='page-view-counter']");
-            int viewsCount = 0;
-            if (viewsNode != null)
+            var views = 0;
+            try
             {
-                // Extracts digits from "Vizualizări: 10" -> "10"
-                var match = Regex.Match(viewsNode.InnerText, @"\d+");
-                if (match.Success) int.TryParse(match.Value, out viewsCount);
+                var vText = _driver.FindElement(By.CssSelector("span[data-testid='page-view-counter']")).Text;
+                var digitsOnly = Regex.Replace(vText, "\\D+", "");
+                if (!string.IsNullOrEmpty(digitsOnly) && int.TryParse(digitsOnly, out var vv)) views = vv;
             }
+            catch { }
 
+            var adId = string.Empty;
+            try { adId = _driver.FindElement(By.CssSelector("span.css-ooacec")).Text.Replace("ID: ", "").Trim(); } catch { }
 
-            var title = document.DocumentNode.SelectSingleNode("//h4[@class='css-1l3a0i9']")?.InnerText.Trim();
-            var description = document.DocumentNode.SelectSingleNode("//div[@class='css-19duwlz']")?.InnerText.Trim();
-            var adId = document.DocumentNode.SelectSingleNode("//span[@class='css-ooacec']")?.InnerText.Replace("ID: ", "").Trim();
-            var sellerName = document.DocumentNode.SelectSingleNode("//h4[@data-testid='user-profile-user-name']")?.InnerText.Trim();
+            var sellerName = string.Empty;
+            try { sellerName = _driver.FindElement(By.CssSelector("h4[data-testid='user-profile-user-name']")).Text.Trim(); } catch { }
 
-            //Location
-            var cityNode = document.DocumentNode.SelectSingleNode("//p[@class='css-9pna1a']");
-            var countyNode = document.DocumentNode.SelectSingleNode("//p[@class='css-3cz5o2']");
-            string city = cityNode?.InnerText.Trim() ?? "Unknown City";
-            string county = countyNode?.InnerText.Trim() ?? "";
-            string fullLocation = string.IsNullOrEmpty(county) ? city : $"{city}, {county}";
+            string city = string.Empty, county = string.Empty;
+            try { city = _driver.FindElement(By.CssSelector("p.css-9pna1a")).Text.Trim(); } catch { }
+            try { county = _driver.FindElement(By.CssSelector("p.css-3cz5o2")).Text.Trim(); } catch { }
+            var fullLocation = string.IsNullOrEmpty(county) ? city : $"{city}, {county}";
 
-            var images = await ExtractImages(_imageDownloader);
-
-            async Task<List<Image>> ExtractImages(ImageDownloader imageDownloader)
+            // images
+            var images = new List<Image>();
+            try
             {
-                // Extract image URLs
-                var imageNodes = document.DocumentNode.SelectNodes("//img[@data-testid='swiper-image']");
-                var imageList = new List<Image>();
-
-                if (imageNodes != null)
+                var imageElements = _driver.FindElements(By.CssSelector("img[data-testid='swiper-image']"));
+                foreach (var imgEl in imageElements)
                 {
-                    foreach (var imgNode in imageNodes)
+                    var src = imgEl.GetAttribute("src");
+                    if (!string.IsNullOrEmpty(src))
                     {
-                        var imageUrl = imgNode.GetAttributeValue("src", string.Empty);
-                        if (!string.IsNullOrEmpty(imageUrl))
+                        var localPath = await _imageDownloader.DownloadImageAsync(src, "Images");
+                        images.Add(new Image
                         {
-                            // prefer the largest URL if srcset is available
-                            var srcset = imgNode.GetAttributeValue("srcset", null);
-                            if (!string.IsNullOrEmpty(srcset))
-                            {
-                                // take last entry in srcset
-                                var parts = srcset.Split(',').Select(p => p.Trim()).ToArray();
-                                var last = parts.LastOrDefault();
-                                if (last != null)
-                                {
-                                    var urlPart = last.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                                    if (!string.IsNullOrEmpty(urlPart)) imageUrl = urlPart.Trim();
-                                }
-                            }
-
-                            var localPath = await imageDownloader.DownloadImageAsync(imageUrl, "Images");
-                            var safeFileName = Path.GetFileName(localPath);
-                            imageList.Add(new Image
-                            {
-                                OriginalUrl = imageUrl,
-                                LocalFilePath = localPath,
-                                FileName = safeFileName,
-                                IsPrimary = imageList.Count == 0
-                            });
-                        }
+                            OriginalUrl = src,
+                            LocalFilePath = localPath,
+                            FileName = Path.GetFileName(localPath),
+                            IsPrimary = images.Count == 0
+                        });
                     }
                 }
-
-                return imageList;
             }
+            catch { }
 
-
-            DateTime ExtractPublicationDate()
-            {
-                // Extract publication date
-                var publicationDate = default(DateTime);
-                var pubNode = document.DocumentNode.SelectSingleNode("//span[@data-testid='ad-posted-at' or @data-cy='ad-posted-at']")
-                              ?? document.DocumentNode.SelectSingleNode("//span[contains(@class,'css-7b83xv')]");
-                var pubText = pubNode?.InnerText?.Trim();
-                if (!string.IsNullOrEmpty(pubText))
-                {
-                    pubText = pubText.Replace("\u00A0", " ").Trim();
-                    // Examples: "Azi la 11:32", "Ieri la 09:10", "acum 2 zile", or full date
-                    if (pubText.Contains("azi", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var m = Regex.Match(pubText, "(\\d{1,2}:\\d{2})");
-                        if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var ts))
-                            publicationDate = DateTime.Today.Add(ts);
-                        else
-                            publicationDate = DateTime.Today;
-                    }
-                    else if (pubText.Contains("ieri", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var m = Regex.Match(pubText, "(\\d{1,2}:\\d{2})");
-                        if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var ts))
-                            publicationDate = DateTime.Today.AddDays(-1).Add(ts);
-                        else
-                            publicationDate = DateTime.Today.AddDays(-1);
-                    }
-                    else if (pubText.StartsWith("acum", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var m = Regex.Match(pubText, "acum\\s+(\\d+)\\s*(\\w+)", RegexOptions.IgnoreCase);
-                        if (m.Success && int.TryParse(m.Groups[1].Value, out var n))
-                        {
-                            var unit = m.Groups[2].Value.ToLower();
-                            if (unit.StartsWith("min")) publicationDate = DateTime.Now.AddMinutes(-n);
-                            else if (unit.StartsWith("or")) publicationDate = DateTime.Now.AddHours(-n);
-                            else if (unit.StartsWith("zi")) publicationDate = DateTime.Now.AddDays(-n);
-                            else publicationDate = DateTime.Now;
-                        }
-                    }
-                    else
-                    {
-                        // try parse with Romanian culture, allow formats with 'la'
-                        var tryText = pubText.Replace(" la ", " ");
-                        if (!DateTime.TryParse(tryText, new CultureInfo("ro-RO"), DateTimeStyles.AllowWhiteSpaces, out publicationDate))
-                        {
-                            // try common formats
-                            var formats = new[] { "d MMM yyyy H:mm", "d MMM yyyy", "d MMM H:mm", "d MMM" };
-                            foreach (var f in formats)
-                            {
-                                if (DateTime.TryParseExact(tryText, f, new CultureInfo("ro-RO"), DateTimeStyles.None, out publicationDate))
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-                return publicationDate;
-            }
-
-            return new Listing
+            var listing = new Listing
             {
                 Title = title,
-                Price = price, // from your regex logic
+                Price = price,
                 Currency = currency,
-                Description = document.DocumentNode.SelectSingleNode("//div[@class='css-19duwlz']")?.InnerText.Trim(),
-                PublicationDate = ExtractPublicationDate(),
+                Description = description,
+                PublicationDate = DateTime.Now,
                 OriginalUrl = url,
                 ExtractionDate = DateTime.UtcNow,
                 SellerName = sellerName,
                 Location = fullLocation,
-                Views = viewsCount,
+                Views = views,
                 ListingId = adId,
                 Images = images
             };
+
+            return listing;
         }
     }
 }
