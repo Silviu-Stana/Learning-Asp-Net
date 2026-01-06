@@ -1,0 +1,28 @@
+﻿-Orchestrates app logic
+-Implements use cases
+-Coordinates scrapers, validation, and persistence
+
+Services/
+ ├── ScrapingService.cs
+ ├── DuplicateDetectionService.cs
+ └── ExportService.cs
+
+Factories/
+ └── ScraperFactory.cs
+
+DTOs/
+ ├── ListingDto.cs
+ └── ImageDto.cs
+
+Interfaces/
+ └── ILogger.cs
+
+Validators/
+ └── UrlValidator.cs
+
+ 🔹 Implements:
+
+Strategy Pattern (select scraper)
+Factory Pattern (create scraper)
+Batch processing
+Retry logic

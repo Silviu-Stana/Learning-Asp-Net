@@ -1,0 +1,17 @@
+﻿-Pure business logic
+-Data models and contracts
+-Completely independent of UI, DB, or web scraping libraries
+
+Entities/
+ ├── Listing.cs
+ └── Image.cs
+
+Interfaces/
+ ├── IListingRepository.cs
+ ├── IImageRepository.cs
+ ├── IScraperStrategy.cs
+ ├── IImageDownloader.cs
+
+ValueObjects/
+ ├── Money.cs
+ └── Location.cs
