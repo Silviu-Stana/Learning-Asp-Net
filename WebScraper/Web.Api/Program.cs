@@ -26,6 +26,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ImageDownloader>();
 
 // Register default scraper (Olx)
+builder.Services.AddTransient<IScraper, OlxScraper>();
 builder.Services.AddTransient<OlxScraper>();
 builder.Services.AddTransient<StoriaScraper>();
 

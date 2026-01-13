@@ -3,6 +3,7 @@ using Application.Services;
 using Domain.Entities;
 using HtmlAgilityPack;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Application.Scrapers
@@ -51,12 +52,33 @@ namespace Application.Scrapers
             var viewsNode = document.DocumentNode.SelectSingleNode("//span[@data-testid='ad-views-counter']")
                           ?? document.DocumentNode.SelectSingleNode("//div[contains(@class, 'css-') and contains(., 'Vizualizări')]");
 
-            string views = viewsNode?.InnerText ?? "-"; // ex: "Vizualizări: 2960"
 
             var adId = document.DocumentNode.SelectSingleNode("//span[contains(@class,'css-ooacec')]")?.InnerText.Replace("ID: ", "").Trim();
+
+            string views = "-";  // ex: "Vizualizări: 2960"
+            if (!string.IsNullOrEmpty(adId))
+            {
+                views = await GetLiveViewsAsync(adId, url);
+            }
+
             var sellerName = document.DocumentNode.SelectSingleNode("//h4[@data-testid='user-profile-user-name']")?.InnerText.Trim();
 
-            string city = document.DocumentNode.SelectSingleNode("//p[contains(@class,'css-1bzg5dq')]")?.InnerText ?? "-";
+            string city = "-";
+
+            // Attempt to get city from og:title metadata (e.g., "Incalzire cusca caine Cluj-Napoca • OLX.ro")
+            var metaTitle = document.DocumentNode.SelectSingleNode("//meta[@property='og:title']")?
+                            .GetAttributeValue("content", "");
+
+            if (!string.IsNullOrEmpty(metaTitle))
+            {
+                // Regex to extract the city between the last space/title and the bullet point '•'
+                var match = Regex.Match(metaTitle, @"\s+([A-Z][a-z]+(-[A-Z][a-z]+)?)\s+•");
+                if (match.Success)
+                {
+                    city = match.Groups[1].Value;
+                }
+            }
+
 
             // images
             var images = new List<Image>();
@@ -168,5 +190,33 @@ namespace Application.Scrapers
                 }
             });
         }
+
+        public async Task<string> GetLiveViewsAsync(string adId, string adUrl)
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", adUrl); // Critic pentru a nu primi 403
+
+            string statsUrl = $"https://www.olx.ro/api/v1/targeting/ad-statistics/ad/{adId}/";
+
+            try
+            {
+                var response = await client.GetAsync(statsUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("data", out var data) && data.TryGetProperty("views", out var views))
+                    {
+                        return views.ToString();
+                    }
+                }
+            }
+            catch { }
+            return "-";
+        }
     }
+
+
 }

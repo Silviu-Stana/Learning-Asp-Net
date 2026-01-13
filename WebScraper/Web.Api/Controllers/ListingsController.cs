@@ -74,7 +74,10 @@ namespace Web.Api.Controllers
             }
 
             await _listings.AddAsync(listing);
-            await _listings.SaveChangesAsync();
+            var saveResult = await _listings.SaveChangesAsync();
+
+            // Debugging log
+            System.Diagnostics.Debug.WriteLine($"ScrapeAndSave: Saved listing with ID {listing.Id}, SaveChanges result: {saveResult}");
 
             return CreatedAtAction(nameof(GetListing), new { id = listing.Id }, listing);
         }

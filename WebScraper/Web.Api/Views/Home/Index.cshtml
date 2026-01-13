@@ -1,4 +1,24 @@
 @model IEnumerable<(string Source, Domain.Entities.Listing Listing)>
+@using System.Linq
+@{
+    var exportEntries = (Model ?? Enumerable.Empty<(string Source, Domain.Entities.Listing Listing)>())
+        .Select(item => new
+        {
+            Source = item.Source,
+            Id = item.Listing?.Id ?? 0,
+            Title = item.Listing?.Title ?? string.Empty,
+            Price = item.Listing?.Price ?? 0,
+            Currency = item.Listing?.Currency ?? string.Empty,
+            Location = item.Listing?.Location ?? string.Empty,
+            SellerName = item.Listing?.SellerName ?? string.Empty,
+            Views = item.Listing?.Views ?? string.Empty,
+            OriginalUrl = item.Listing?.OriginalUrl ?? string.Empty,
+            ExtractionDate = item.Listing?.ExtractionDate,
+            ListingId = item.Listing?.ListingId ?? string.Empty,
+            Description = item.Listing?.Description ?? string.Empty
+        })
+        .ToList();
+}
 
 <!DOCTYPE html>
 <html>
@@ -49,8 +69,9 @@
 
         .ad-seller {
             font-size: 1.25rem;
-            color: #6b7280;
+            color: #228B22;
             margin-bottom: 8px;
+            font-weight: bold;
         }
 
         .ad-desc {
@@ -162,8 +183,8 @@
             </div>
 
             <script>
-                // embed server model for client-side exports
-                window.__initialListings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+                // embed flattened server model for client-side exports
+                window.__initialListings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(exportEntries));
             </script>
         }
 
@@ -188,6 +209,7 @@
                         </div>
                         <ul class="list-group list-group-flush" style="margin:8px 0;padding:0 16px;">
                             <li class="list-group-item">Location: <span class="text-muted">@item.Listing.Location</span></li>
+                            <li class="list-group-item">Vizualizari: <span class="text-muted">@item.Listing.Views</span></li>
                         </ul>
                         <div class="card-body px-4 pb-4 card-links">
                             <a href="@item.Listing.OriginalUrl" target="_blank" class="card-link btn btn-outline-primary btn-sm">View on Source</a>
@@ -242,7 +264,7 @@
         });
 
         // Embed server model for client-side exports
-        window.__initialListings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+        window.__initialListings = window.__initialListings || [];
     </script>
     <script>
         const exportCsvBtn = document.getElementById('exportCsvBtn');
