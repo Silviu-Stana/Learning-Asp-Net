@@ -17,19 +17,20 @@ namespace Web.Api.Controllers
             _listings = listings;
         }
 
-        public async Task<IActionResult> Index(string? searchUrl)
+        public async Task<IActionResult> Index(string? searchUrl, int resultsCount = 10)
         {
             if (string.IsNullOrWhiteSpace(searchUrl))
             {
                 return View(new List<(string Source, Domain.Entities.Listing Listing)>());
             }
 
+            var maxResults = resultsCount <= 0 ? 10 : resultsCount;
             var combinedListings = new List<(string Source, Domain.Entities.Listing Listing)>();
 
             if (searchUrl.Contains("olx.ro"))
             {
                 var olxScraper = HttpContext.RequestServices.GetRequiredService<OlxScraper>();
-                var olxListings = await olxScraper.ExtractListingUrlsFromSearchAsync(searchUrl, 10);
+                var olxListings = await olxScraper.ExtractListingUrlsFromSearchAsync(searchUrl, maxResults);
 
                 foreach (var listingUrl in olxListings)
                 {
@@ -43,7 +44,7 @@ namespace Web.Api.Controllers
             else if (searchUrl.Contains("storia.ro"))
             {
                 var storiaScraper = HttpContext.RequestServices.GetRequiredService<StoriaScraper>();
-                var storiaListings = await storiaScraper.ExtractListingUrlsFromSearchAsync(searchUrl, 10);
+                var storiaListings = await storiaScraper.ExtractListingUrlsFromSearchAsync(searchUrl, maxResults);
 
                 foreach (var listingUrl in storiaListings)
                 {
