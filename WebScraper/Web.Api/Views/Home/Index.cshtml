@@ -143,6 +143,11 @@
     <div class="py-4">
         <h1 class="text-center mb-4">WebScraper</h1>
         <div class="search-bar mb-4" style="display:flex;align-items:center;justify-content:center;">
+            @* Form submissions run via JS:
+            -we fetch listing URLs from api/listings/extract-urls
+            -scrape/save each one through api/listings
+            -and update the progress bar/count after every request
+            *@
             <form method="get" action="/Home/Index" style="width:100%;max-width:1100px;">
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input name="searchUrl" type="url" placeholder="Paste listing URL (OLX, Storia...)" aria-label="Listing URL" required
@@ -170,9 +175,7 @@
             <div class="progress" style="height:44px;border-radius:12px;overflow:hidden;margin-top:10px;">
                 <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width:0%;height:100%;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:1.05rem;">0%</div>
             </div>
-        </div>
-        <div class="progress" style="height: 20px; margin: 20px auto; width: 80%; display: none;" id="progressBarContainer">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progressBar"></div>
+            <div id="progressStatus" class="mt-2" style="font-size:0.95rem;color:#4b5563;display:none;">Waiting…</div>
         </div>
         @if (Model?.Any() == true)
         {
@@ -227,39 +230,95 @@
             const bulkProgress = document.getElementById("bulkProgress");
             const progressBar = document.getElementById("progressBar");
             const progressCount = document.getElementById("progressCount");
+            const progressStatus = document.getElementById("progressStatus");
+            const resultsSelect = form?.querySelector('select[name="resultsCount"]');
 
-            if (!form || !spinner || !bulkProgress || !progressBar || !progressCount) {
+            if (!form || !spinner || !bulkProgress || !progressBar || !progressCount || !progressStatus) {
                 console.error("Form or progress elements not found.");
                 return;
             }
 
-            form.addEventListener("submit", function (event) {
+            form.addEventListener("submit", async function (event) {
                 event.preventDefault();
+
+                if (!form.searchUrl) return;
+
+                const searchUrl = form.searchUrl.value.trim();
+                if (!searchUrl) return;
+
+                const requestedResults = parseInt(resultsSelect?.value ?? '10', 10) || 10;
+
                 spinner.style.display = "block";
-                bulkProgress.style.display = "none";
+                bulkProgress.style.display = "block";
+                progressStatus.style.display = "block";
+                progressStatus.innerText = "Extracting listing links…";
+                progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
                 progressBar.style.width = "0%";
                 progressBar.innerText = "0%";
-                progressCount.innerText = "0 / 10";
+                progressCount.innerText = `0 / ${requestedResults}`;
 
-                setTimeout(() => {
-                    spinner.style.display = "none";
-                    bulkProgress.style.display = "block";
-                    let progress = 0;
-                    const total = 10;
+                try {
+                    const extractResponse = await fetch('/api/listings/extract-urls', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: searchUrl, results: requestedResults })
+                    });
 
-                    const interval = setInterval(() => {
-                        progress++;
-                        const percentage = Math.round((progress / total) * 100);
-                        progressBar.style.width = percentage + "%";
-                        progressBar.innerText = percentage + "%";
-                        progressCount.innerText = `${progress} / ${total}`;
+                    if (!extractResponse.ok) {
+                        progressStatus.innerText = 'Failed to fetch listing URLs.';
+                        spinner.style.display = 'none';
+                        progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                        return;
+                    }
 
-                        if (progress >= total) {
-                            clearInterval(interval);
-                            form.submit();
+                    const listingUrls = await extractResponse.json();
+                    const total = Array.isArray(listingUrls) ? listingUrls.length : 0;
+
+                    if (total === 0) {
+                        progressStatus.innerText = 'No listings found for this search.';
+                        spinner.style.display = 'none';
+                        progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                        progressBar.style.width = '0%';
+                        progressBar.innerText = '0%';
+                        progressCount.innerText = '0 / 0';
+                        return;
+                    }
+
+                    progressCount.innerText = `0 / ${total}`;
+                    progressStatus.innerText = 'Scraping listings…';
+
+                    for (let i = 0; i < total; i++) {
+                        try {
+                            const scrapeResponse = await fetch('/api/listings', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url: listingUrls[i] })
+                            });
+
+                            if (!scrapeResponse.ok && scrapeResponse.status !== 409) {
+                                console.warn('Scrape failed for', listingUrls[i]);
+                            }
+                        } catch (scrapeError) {
+                            console.warn('Scrape error', scrapeError);
                         }
-                    }, 500);
-                }, 2000);
+
+                        const completed = i + 1;
+                        const percentage = Math.round((completed / total) * 100);
+                        progressBar.style.width = percentage + '%';
+                        progressBar.innerText = percentage + '%';
+                        progressCount.innerText = `${completed} / ${total}`;
+                    }
+
+                    progressStatus.innerText = 'Refreshing results…';
+                    progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                    spinner.style.display = 'none';
+                    window.location.href = `/Home/Index?searchUrl=${encodeURIComponent(searchUrl)}`;
+                } catch (err) {
+                    console.error(err);
+                    progressStatus.innerText = 'Unexpected error while scraping listings.';
+                    progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                    spinner.style.display = 'none';
+                }
             });
         });
 

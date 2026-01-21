@@ -33,8 +33,11 @@ namespace Web.Api.Controllers
 
                 foreach (var listingUrl in olxListings)
                 {
-                    var listing = await olxScraper.ScrapeListingAsync(listingUrl);
-                    combinedListings.Add(("From OLX", listing));
+                    var listing = await GetListingOrScrapeAsync(listingUrl, () => olxScraper.ScrapeListingAsync(listingUrl));
+                    if (listing != null)
+                    {
+                        combinedListings.Add(("From OLX", listing));
+                    }
                 }
             }
             else if (searchUrl.Contains("storia.ro"))
@@ -44,8 +47,11 @@ namespace Web.Api.Controllers
 
                 foreach (var listingUrl in storiaListings)
                 {
-                    var listing = await storiaScraper.ScrapeListingAsync(listingUrl);
-                    combinedListings.Add(("From Storia", listing));
+                    var listing = await GetListingOrScrapeAsync(listingUrl, () => storiaScraper.ScrapeListingAsync(listingUrl));
+                    if (listing != null)
+                    {
+                        combinedListings.Add(("From Storia", listing));
+                    }
                 }
             }
 
@@ -53,5 +59,40 @@ namespace Web.Api.Controllers
         }
 
         public IActionResult Privacy() => View();
+
+        private async Task SaveListingIfNeededAsync(Domain.Entities.Listing listing)
+        {
+            if (listing is null) return;
+
+            var existing = await _listings.GetByOriginalUrlAsync(listing.OriginalUrl);
+            if (existing == null && !string.IsNullOrEmpty(listing.ListingId))
+            {
+                existing = await _listings.GetByListingIdAsync(listing.ListingId);
+            }
+
+            if (existing != null) return;
+
+            if (listing.Images != null)
+            {
+                foreach (var image in listing.Images)
+                {
+                    image.Listing = null; // prevent circular references when saving
+                }
+            }
+
+            await _listings.AddAsync(listing);
+            await _listings.SaveChangesAsync();
+        }
+
+        //Returns cached list from DB when available, otherwise Scrape it.
+        private async Task<Domain.Entities.Listing?> GetListingOrScrapeAsync(string listingUrl, Func<Task<Domain.Entities.Listing>> scrapeOperation)
+        {
+            var existing = await _listings.GetByOriginalUrlAsync(listingUrl);
+            if (existing != null) return existing;
+
+            var listing = await scrapeOperation();
+            await SaveListingIfNeededAsync(listing);
+            return listing;
+        }
     }
 }
